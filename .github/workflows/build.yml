@@ -7,7 +7,7 @@ on:
     branches: [ "cicd" ]
 
 jobs:
-  build_test:
+  build:
     name: Build LingLink Frontend
     runs-on: ubuntu-latest
 
