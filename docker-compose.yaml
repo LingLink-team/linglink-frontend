@@ -1,0 +1,24 @@
+# Use root/example as user/password credentials
+version: '3.5'
+
+services:
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: linklink-frontend
+    env_file: 
+      - .env
+    ports:
+      - '3005:3005'
+    volumes:
+      - ./src:/app/src
+# build with image 
+    # image: linglink-frontend:latest
+    # container_name: linklink-frontend
+    # env_file: 
+    #   - .env
+    # ports:
+    #   - '3005:3005'
+    # volumes:
+    #   - ./src:/app/src
