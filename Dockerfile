@@ -1,11 +1,10 @@
-FROM node:18-alpine
+FROM node:18
 LABEL author="tringuyennek"
 
 WORKDIR /app
 
 COPY package*.json yarn.lock ./
-RUN apk add --no-cache git \
-    && yarn install --frozen-lockfile \
+RUN yarn install --frozen-lockfile \
     && yarn cache clean
 
 COPY . .
