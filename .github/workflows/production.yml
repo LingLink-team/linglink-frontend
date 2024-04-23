@@ -2,7 +2,7 @@ name: LingLink System Deployment
 
 on:
   push:
-    branches: [ "cicd" ]
+    branches: [ "production" ]
 
 env:
   IMAGE_NAME: linglink-frontend
@@ -48,36 +48,36 @@ jobs:
       - name: Push Image latest
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
 
-  # deploy:
-  #   name: Deploy System To EC2 Instance
-  #   needs: push_new_image
-  #   runs-on: ubuntu-latest
-  #   environment: 
-  #     name: linglink
+  deploy:
+    name: Deploy To EC2 Instance
+    needs: push_new_image
+    runs-on: ubuntu-latest
+    environment: 
+      name: linglink-frontend
 
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v3
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
 
-  #     - name: Deploy Into EC2 Instance
-  #       env:
-  #           PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-  #           HOSTNAME: ${{secrets.SSH_HOST}}
-  #           USER_NAME: ${{secrets.USER_NAME}}
+      - name: Deploy Into EC2 Instance
+        env:
+            PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+            HOSTNAME: ${{secrets.SSH_HOST}}
+            USER_NAME: ${{secrets.USER_NAME}}
       
-  #       run: |
-  #         echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
-  #         ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
+        run: |
+          echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
+          ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
 
-  #             # Now we have got the access of EC2 and we will start the deploy .
-  #             sudo docker stop linglink &&
-  #             sudo docker remove linglink &&
-  #             sudo docker rmi tringuyennek/linglink-system &&
-  #             sudo docker pull tringuyennek/linglink-system:latest &&
-  #             cd /etc &&
-  #             sudo docker run --name linglink -p 3000:3000 --env-file app.env -d tringuyennek/linglink-system &&
-  #             exit
-  #             '
+              # Now we have got the access of EC2 and we will start the deploy .
+              sudo docker stop linglink-frontend &&
+              sudo docker remove linglink-frontend &&
+              sudo docker rmi tringuyennek/linglink-frontend &&
+              sudo docker pull tringuyennek/linglink-frontend:latest &&
+              cd /etc &&
+              sudo docker run --name linglink-frontend -p 3005:3005 -d tringuyennek/linglink-frontend &&
+              exit
+              '
             
-  #         rm private_key
+          rm private_key
 
