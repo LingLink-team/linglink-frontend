@@ -55,7 +55,7 @@ export default function UserSignInForm({ className, ...props }: UserAuthFormProp
         validationSchema: Yup.object({
             name: Yup.string().min(6, 'Phải có ít nhất 6 ký tự').required('Cần nhập họ và tên'),
             email: Yup.string().email('Địa chỉ email không hợp lệ').required('Cần nhập email'),
-            password: Yup.string().min(8, 'Phải có ít nhất 8 ký tự').required('Cần nhập mật khẩu'),
+            password: Yup.string().min(9, 'Phải có ít nhất 9 ký tự').required('Cần nhập mật khẩu'),
             repassword: Yup.string()
                 .oneOf([Yup.ref('password')], 'Mật khẩu không khớp') // Kiểm tra khớp với trường 'password'
                 .min(8, 'Phải có ít nhất 8 ký tự')

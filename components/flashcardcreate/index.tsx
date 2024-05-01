@@ -131,59 +131,28 @@ export default function FlashCardCreate() {
             </SheetTrigger>
             <SheetContent>
               <SheetHeader>
-                <SheetTitle>Thêm Flashcard</SheetTitle>
+                <SheetTitle>Thêm Bộ Flashcards</SheetTitle>
                 <SheetDescription>
-                  Tạo flashcard để học tập từ vựng nhanh chóng.
+                  Tạo bộ flashcard để học tập từ vựng nhanh chóng.
                 </SheetDescription>
               </SheetHeader>
               <div className="grid gap-4 py-4">
-                <Select onValueChange={(value: any) => setListid(value)}>
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue placeholder="Chọn bộ từ vựng" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Bộ từ vựng của bạn</SelectLabel>
-                    </SelectGroup>
-                    {flashlist.length > 0 &&
-                      flashlist.map((item: any, index: any) => {
-                        return (
-                          <SelectItem key={index} value={item._id}>
-                            {item.name}
-                          </SelectItem>
-                        );
-                      })}
-                  </SelectContent>
-                </Select>
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="word" className="text-right">
-                    Từ vựng
+                  <Label htmlFor="flashcardlistname" className="text-left">
+                    Tên bộ flashcards
                   </Label>
                   <Input
-                    value={word}
-                    onChange={(e) => setWord(e.target.value)}
-                    id="word"
-                    placeholder="Hello"
-                    className="col-span-3"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="mean" className="text-right">
-                    Nghĩa
-                  </Label>
-                  <Input
-                    value={answer}
-                    onChange={(e) => setAnswer(e.target.value)}
-                    id="mean"
-                    placeholder="Xin chào"
+                    onChange={(e) => setFlashlistname(e.target.value)}
+                    id="flashcardlistname"
+                    placeholder="Nhập tên"
                     className="col-span-3"
                   />
                 </div>
               </div>
               <SheetFooter>
                 <SheetClose asChild>
-                  <Button onClick={createFlashcard} type="submit">
-                    Tạo flashcard
+                  <Button onClick={createFlashlist} type="submit">
+                    Tạo mới
                   </Button>
                 </SheetClose>
               </SheetFooter>
@@ -194,33 +163,64 @@ export default function FlashCardCreate() {
       <Sheet>
         <SheetTrigger asChild>
           <Button className="mb-2" variant="outline">
-            Thêm bộ flashcards
+            Thêm flashcard
           </Button>
         </SheetTrigger>
         <SheetContent>
           <SheetHeader>
-            <SheetTitle>Thêm Bộ Flashcards</SheetTitle>
+            <SheetTitle>Thêm Flashcard</SheetTitle>
             <SheetDescription>
-              Tạo bộ flashcard để học tập từ vựng nhanh chóng.
+              Tạo flashcard để học tập từ vựng nhanh chóng.
             </SheetDescription>
           </SheetHeader>
           <div className="grid gap-4 py-4">
+            <Select onValueChange={(value: any) => setListid(value)}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Chọn bộ từ vựng" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Bộ từ vựng của bạn</SelectLabel>
+                </SelectGroup>
+                {flashlist.length > 0 &&
+                  flashlist.map((item: any, index: any) => {
+                    return (
+                      <SelectItem key={index} value={item._id}>
+                        {item.name}
+                      </SelectItem>
+                    );
+                  })}
+              </SelectContent>
+            </Select>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="flashcardlistname" className="text-left">
-                Tên bộ flashcards
+              <Label htmlFor="word" className="text-right">
+                Từ vựng
               </Label>
               <Input
-                onChange={(e) => setFlashlistname(e.target.value)}
-                id="flashcardlistname"
-                placeholder="Nhập tên"
+                value={word}
+                onChange={(e) => setWord(e.target.value)}
+                id="word"
+                placeholder="Hello"
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="mean" className="text-right">
+                Nghĩa
+              </Label>
+              <Input
+                value={answer}
+                onChange={(e) => setAnswer(e.target.value)}
+                id="mean"
+                placeholder="Xin chào"
                 className="col-span-3"
               />
             </div>
           </div>
           <SheetFooter>
             <SheetClose asChild>
-              <Button onClick={createFlashlist} type="submit">
-                Tạo mới
+              <Button onClick={createFlashcard} type="submit">
+                Tạo flashcard
               </Button>
             </SheetClose>
           </SheetFooter>
@@ -241,12 +241,12 @@ export default function FlashCardCreate() {
                 <div key={index}>
                   <SwiperSlide>
                     <div className="flex flex-col gap-2">
-                      <div className="flip-card">
-                        <div className="flip-card-inner">
-                          <div className="flip-card-front h-full flex justify-center items-center bg-active">
+                      <div className="flip-card !max-h-[150px]">
+                        <div className="flip-card-inner !max-h-[150px]">
+                          <div className="flip-card-front h-full flex justify-center items-center bg-active !text-white font-bold text-sm">
                             {item.word}
                           </div>
-                          <div className="flip-card-back h-full flex justify-center items-center bg-slate-400">
+                          <div className="flip-card-back h-full flex justify-center items-center bg-slate-400 font-bold text-sm">
                             {item.answer}
                           </div>
                         </div>
@@ -254,7 +254,7 @@ export default function FlashCardCreate() {
                       <Button
                         onClick={() => handleChangeState(item)}
                         size="sm"
-                        className=""
+                        className="text-sm"
                       >
                         Đã biết, loại khỏi danh sách ôn tập
                       </Button>
@@ -270,11 +270,11 @@ export default function FlashCardCreate() {
         )}
       </Swiper>
       <div className="flex justify-end gap-2 mt-2">
-        <Button className="" onClick={handlePrev}>
-          <FaArrowLeft />
+        <Button className="py-2 px-4 h-fit" onClick={handlePrev}>
+          <FaArrowLeft className="h-3 w-3" />
         </Button>
-        <Button className="" onClick={handleNext}>
-          <FaArrowRight />
+        <Button className="py-2 px-4 h-fit" onClick={handleNext}>
+          <FaArrowRight className="h-3 w-3" />
         </Button>
       </div>
     </div>

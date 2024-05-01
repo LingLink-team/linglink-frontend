@@ -11,6 +11,19 @@ export class PostService {
     );
     return response;
   }
+
+  static async updatePostById(
+    postId: any,
+    postData: any
+  ): Promise<AxiosResponse<any>> {
+    const axiosInstance = createAxiosInstance();
+    const response: AxiosResponse<any> = await axiosInstance.put(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/posts/${postId}`,
+      postData
+    );
+    return response;
+  }
+
   static async deletePost(
     postid: any
   ): Promise<[AxiosResponse<any>, AxiosResponse<any>]> {

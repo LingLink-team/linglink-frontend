@@ -1,8 +1,6 @@
 "use client";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MdDelete} from "react-icons/md";
-import { FaRegImages } from "react-icons/fa6";
-import { BsPatchQuestionFill } from "react-icons/bs";
+
+import { MdDelete } from "react-icons/md";
 import {
   Select,
   SelectContent,
@@ -45,16 +43,16 @@ import AudioPlayer from "react-h5-audio-player";
 import "react-h5-audio-player/lib/styles.css";
 import { PostService } from "@/app/services";
 import { Icons } from "@/components/icons/icons";
-import { useAppSelector } from "@/app/redux/store";
 import { uploadFile } from "@/utils";
+import { FaEdit } from "react-icons/fa";
+import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { EmojiPicker } from "@/components/chat/emoji-picker";
 
-export default function CreatePost({ add }: { add: any }) {
-  const user = useAppSelector((state) => state.auth.userinfor);
-  const [input, setInput] = useState<string>("");
+export default function UpdatePost({ data, isOpenModal, setIsOpenModal }: any) {
+  const [input, setInput] = useState<string>(data.content);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const [myFile, setMyFile] = useState([]);
+  const [myFile, setMyFile] = useState(data.imgs_url);
   const onDrop = useCallback(
     (acceptedFiles: any) => {
       setMyFile(acceptedFiles);
@@ -69,32 +67,56 @@ export default function CreatePost({ add }: { add: any }) {
       // maxFiles: 1,
       onDrop: onDrop,
     });
-  const removeFile = (filePath: string) => {
-    const updatedFiles = myFile.filter((file: any) => file.path !== filePath);
+  const removeFile = (removeFile: any) => {
+    const updatedFiles = myFile.filter((file: any) => file !== removeFile);
     setMyFile(updatedFiles);
   };
-  const files_image = myFile.map((file: any) => {
-    const imageUrl = URL.createObjectURL(file);
-    return (
-      <li
-        key={file.path}
-        className="border-2 w-full px-4 py-1 flex flex-row gap-1 justify-between items-center rounded-md text-xs"
-      >
-        <Image
-          width={0}
-          height={0}
-          src={imageUrl}
-          alt={file.name}
-          className="h-full max-h-[40px] w-fit object-contain"
-        />
-        {file.path} - {file.size} bytes
-        <Button size={"sm"} onClick={() => removeFile(file.path)}>
-          <MdDelete />
-        </Button>
-      </li>
-    );
+  const files_image = myFile.map((fileOrUrl: any, index: number) => {
+    if (fileOrUrl instanceof File) {
+      const imageUrl = URL.createObjectURL(fileOrUrl);
+      return (
+        <li
+          key={index}
+          className="border-2 w-full px-4 py-3 flex gap-1 justify-between items-center rounded-md text-xs"
+        >
+          <Image
+            width={0}
+            height={0}
+            src={imageUrl}
+            alt={fileOrUrl.name}
+            className="h-full max-h-[40px] w-fit"
+          />
+          <span className=" truncate">
+            {fileOrUrl.name} - {fileOrUrl.size} bytes
+          </span>
+          <Button onClick={() => removeFile(fileOrUrl)} size="sm">
+            <MdDelete />
+          </Button>
+        </li>
+      );
+    } else if (typeof fileOrUrl === "string") {
+      return (
+        <li
+          key={index}
+          className="border-2 w-full px-4 py-3 flex gap-1 justify-between items-center rounded-md text-xs"
+        >
+          <Image
+            width={0}
+            height={0}
+            src={fileOrUrl}
+            alt={`Image ${index}`}
+            className="h-full max-h-[40px] w-fit"
+          />
+          <Button onClick={() => removeFile(fileOrUrl)} size="sm">
+            <MdDelete />
+          </Button>
+        </li>
+      );
+    } else {
+      return null; // Trường hợp khác (nếu có)
+    }
   });
-  const [answers, setAnswers] = useState(["", ""]); // State để theo dõi danh sách đáp án
+  const [answers, setAnswers] = useState(data.question?.answers ?? []); // State để theo dõi danh sách đáp án
 
   // Hàm thêm đáp án mới
   const addAnswer = () => {
@@ -119,13 +141,17 @@ export default function CreatePost({ add }: { add: any }) {
     setAnswers(newAnswers);
   };
   const listanswer = ["A", "B", "C", "D"];
-  const [topic, setTopic] = useState<string>("");
+  const [topic, setTopic] = useState<string>(data.topic._id);
   const [topics, setTopics] = useState<any>();
-  const [question, setQuestion] = useState<string>("");
+  const [question, setQuestion] = useState<string>(data.question?.content);
   const [audio, setAudio] = useState<any>("");
-  const [audioFile, setAudioFile] = useState<any>(null);
-  const [key, setKey] = useState<any>(null);
-  const [previewquestion, setPreviewQuestion] = useState<any>(null);
+  const [audioFile, setAudioFile] = useState<any>(
+    data.question?.audio_url ?? null
+  );
+  const [key, setKey] = useState<any>(data.question?.key);
+  const [previewquestion, setPreviewQuestion] = useState<any>(
+    data.question ?? null
+  );
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const clearInput = async () => {
     setTopic("");
@@ -135,25 +161,40 @@ export default function CreatePost({ add }: { add: any }) {
     setAudioFile(null);
     setKey(null);
     setPreviewQuestion(null);
-    setMyFile([]);
   };
-  const createPost = async () => {
+
+  const queryClient = useQueryClient();
+  const updatePost = async () => {
     try {
       setIsLoading(true);
-      const fileUploadPromises = myFile
-        ? myFile.map((file) =>
-            file ? uploadFile(file) : Promise.resolve(null)
-          )
-        : [Promise.resolve(null)];
 
-      const audioUploadPromise = audioFile
-        ? uploadFile(audioFile)
-        : Promise.resolve(null);
+      let uploadedImages = [];
+      let audioUrl = "";
 
-      const [uploadedImages, audioUrl] = await Promise.all([
-        Promise.all(fileUploadPromises),
-        audioUploadPromise,
-      ]);
+      // Kiểm tra nếu các file đã được tải lên trước đó
+      if (myFile.every((file) => typeof file === "string")) {
+        // Nếu các file là URL sẵn, không cần upload
+        uploadedImages = myFile;
+      } else {
+        // Nếu có file đang chờ upload, thực hiện upload
+        const fileUploadPromises = myFile
+          ? myFile.map((file) =>
+              file ? uploadFile(file) : Promise.resolve(null)
+            )
+          : [Promise.resolve(null)];
+        uploadedImages = await Promise.all(fileUploadPromises);
+      }
+
+      // Kiểm tra nếu file âm thanh đã được tải lên trước đó
+      if (typeof audioFile === "string") {
+        // Nếu file là URL sẵn, không cần upload
+        audioUrl = audioFile;
+      } else {
+        // Nếu có file đang chờ upload, thực hiện upload
+        audioUrl = await (audioFile
+          ? uploadFile(audioFile)
+          : Promise.resolve(null));
+      }
 
       const updatedPreviewQuestion = {
         ...previewquestion,
@@ -161,39 +202,35 @@ export default function CreatePost({ add }: { add: any }) {
       };
 
       const postreq = {
-        topicID: topic,
+        topic: topic,
         ...(previewquestion !== null && {
-          newQuestion: updatedPreviewQuestion,
+          question: updatedPreviewQuestion,
         }),
         content: input,
         imgs_url: uploadedImages,
       };
-      // Tạo bài viết
-      // const axiosJWT = createAxiosInstance()
+
       let errors = {
         topic: "",
         content: "",
       };
-      if (postreq.topicID === "") errors.topic = "Chưa chọn topic";
+      if (postreq.topic === "") errors.topic = "Chưa chọn topic";
       if (postreq.content === "")
         errors.content = "Chưa nhập nội dung bài viết";
       if (errors?.topic || errors?.content) {
         toast.warn("Bạn chưa chọn topic hoặc chưa nhập nội dung bài viết");
       } else {
-        const result: any = await PostService.createPost(postreq);
-        const newdata = {
-          data: result.data,
-        };
-        add(newdata);
-        toast.success("Thêm bài viết thành công");
+        await PostService.updatePostById(data._id, postreq);
+        toast.success("Chỉnh sửa bài viết thành công");
         clearInput();
       }
       setIsLoading(false);
     } catch (err: any) {
       setIsLoading(false);
-      toast.error("Tạo bài viết thất bại");
+      console.log(err);
     }
   };
+
   const addquestion = async () => {
     try {
       const questionreq = {
@@ -230,17 +267,9 @@ export default function CreatePost({ add }: { add: any }) {
     fetchTopics();
   }, []);
 
-  const [isOpenModal, setIsOpenModal] = useState<boolean>(false);
-  const handleOpen = () => {
-    setIsOpenModal(true);
-  };
   return (
-    <div className="bg-background rounded-md px-6 pt-3 py-6 shadow-md">
+    <div className="">
       <div className="flex flex-row gap-3">
-        <Avatar>
-          <AvatarImage src={user.avatar} alt="@shadcn" />
-          <AvatarFallback>CN</AvatarFallback>
-        </Avatar>
         <Dialog open={isOpenModal} onOpenChange={setIsOpenModal}>
           {isLoading ? (
             <div className="flex gap-2 justify-center items-center bg-gray-100 hover:bg-slate-200 transition duration-300 cursor-pointer w-full rounded-2xl p-3 text-gray-400">
@@ -249,15 +278,13 @@ export default function CreatePost({ add }: { add: any }) {
             </div>
           ) : (
             <DialogTrigger asChild>
-              <div className="bg-gray-100 hover:bg-slate-200 transition duration-300 cursor-pointer w-full rounded-2xl p-3 text-gray-400">
-                {user.name} à, Bạn đang nghĩ gì thế ?
-              </div>
+              <div className="hidden"></div>
             </DialogTrigger>
           )}
           <DialogContent className="overflow-y-scroll max-h-[80vh] no-scrollbar">
             <DialogHeader>
-              <DialogTitle>Tạo bài viết mới</DialogTitle>
-              <DialogDescription>Bạn muốn tạo bài viết gì ?</DialogDescription>
+              <DialogTitle>Chỉnh sửa bài viết</DialogTitle>
+              <DialogDescription>Chỉnh sửa thông tin và nhấn lưu để thay đổi</DialogDescription>
             </DialogHeader>
             <Dialog>
               <div className="">
@@ -380,7 +407,11 @@ export default function CreatePost({ add }: { add: any }) {
                             </Label>
                             <AudioPlayer
                               autoPlay={false}
-                              src={URL.createObjectURL(audioFile)}
+                              src={
+                                typeof audioFile === "string"
+                                  ? audioFile
+                                  : URL.createObjectURL(audioFile)
+                              }
                               className="w-full my-2"
                             />
                             <Button
@@ -416,7 +447,7 @@ export default function CreatePost({ add }: { add: any }) {
                             </SelectContent>
                           </Select>
                           <div className="flex flex-col gap-2 my-4">
-                            {answers.map((answer, index) => (
+                            {answers.map((answer: any, index: number) => (
                               <div
                                 className="flex gap-4 items-center"
                                 key={index}
@@ -446,7 +477,7 @@ export default function CreatePost({ add }: { add: any }) {
                       <DialogFooter>
                         <DialogClose asChild>
                           <Button onClick={addquestion} type="submit">
-                            Tạo câu hỏi
+                            Lưu câu hỏi
                           </Button>
                         </DialogClose>
                       </DialogFooter>
@@ -454,24 +485,38 @@ export default function CreatePost({ add }: { add: any }) {
                   </div>
                 </div>
                 <div>
-                  {previewquestion !== null && (
-                    <div>
+                  {previewquestion && (
+                    <div className="border px-2 py-4 rounded-lg">
                       <div>
-                        <div className="px-6 text-lg font-semibold mb-4">
+                        <div className="text-md font-semibold mb-4">
                           Câu hỏi: {previewquestion.content}
                         </div>
                         <div className="flex">
                           <DialogTrigger asChild>
-                            <Button className="ml-6 mb-4">Sửa câu hỏi</Button>
+                            <Button className="mb-4 bg-yellow-400" size="sm">
+                              <FaEdit />
+                            </Button>
                           </DialogTrigger>
                           <Button
-                            className="ml-6 mb-4"
+                            className="ml-2 mb-4 bg-red-400"
+                            size="sm"
                             onClick={deletequestion}
                           >
-                            Xóa câu hỏi
+                            <MdDelete />
                           </Button>
                         </div>
-                        <div className="px-6 grid grid-cols-2 gap-3">
+                        {audioFile && (
+                          <AudioPlayer
+                            autoPlay={false}
+                            src={
+                              typeof audioFile === "string"
+                                ? audioFile
+                                : URL.createObjectURL(audioFile)
+                            }
+                            className="w-full my-2"
+                          />
+                        )}
+                        <div className="px-6 grid grid-cols-2 gap-3 mt-6">
                           {previewquestion.answers.map(
                             (answer: any, idx: any) => {
                               return (
@@ -521,48 +566,23 @@ export default function CreatePost({ add }: { add: any }) {
                   <input {...image_inputprops()} />
                   <div className="flex flex-col gap-2 items-center justify-center">
                     <p className="text-4xl font-medium">+</p>
-                    <div className="text-sm">
-                      Thêm ảnh bằng cách nhấn chọn hoặc kéo thả
-                    </div>
+                    <div>Thêm ảnh bằng cách nhấn chọn hoặc kéo thả</div>
                   </div>
                 </div>
                 <aside className="mt-2">
-                  <ul className="flex flex-col gap-4">{files_image}</ul>
+                  <ul className="flex flex-col gap-2">{files_image}</ul>
                 </aside>
               </div>
             </Dialog>
             <DialogFooter>
               <DialogClose asChild>
-                <Button onClick={createPost} className="mt-2" type="submit">
-                  Tạo bài viết
+                <Button onClick={updatePost} className="mt-2" type="submit">
+                  Chỉnh sửa
                 </Button>
               </DialogClose>
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
-      <hr className="h-[1px] mt-5 bg-gray-400"></hr>
-      <div className="flex justify-between mt-4">
-        <div className="basis-1/2 flex items-center justify-center">
-          <Button
-            onClick={handleOpen}
-            variant="ghost"
-            className="flex items-center gap-2 justify-center rounded-lg cursor-pointer transition duration-300 w-fit"
-          >
-            <FaRegImages className="text-green-500 text-2xl" />
-            <div className="font-medium text-slate-400">Tải ảnh lên</div>
-          </Button>
-        </div>
-        <div className="basis-1/2 flex items-center justify-center">
-          <Button
-            onClick={handleOpen}
-            variant="ghost"
-            className="flex items-center gap-2 justify-center rounded-lg cursor-pointer transition duration-300 w-fit"
-          >
-            <BsPatchQuestionFill className="text-yellow-500 text-2xl" />
-            <div className="font-medium text-slate-400">Đặt câu hỏi</div>
-          </Button>
-        </div>
       </div>
     </div>
   );

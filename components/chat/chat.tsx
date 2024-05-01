@@ -45,7 +45,7 @@ export function Chat({ selectedUser, isMobile, chatRoomId }: ChatProps) {
 
     // Clean up listener when component unmounts
     return () => {
-      sk.off('getmessage');
+      sk?.off('getmessage');
     };
   }, [sk]);
 
