@@ -11,34 +11,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
 import { Icons } from "@/components/icons/icons";
-import { toast } from "react-toastify";
 import CreatePost from "./components/createpost";
 import createAxiosInstance from "@/app/utils/axiosInstance";
-import { connectSocket } from "@/app/services/socketService";
-
-const TopicSelect: React.FC = () => {
-  return (
-    <div>
-      <Select>
-        <SelectTrigger className="w-[150px]">
-          <SelectValue placeholder="Chọn chủ đề" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectGroup>
-            <SelectLabel>Loại bài viết</SelectLabel>
-            <SelectItem value="tuvung">Từ vựng</SelectItem>
-            <SelectItem value="nguphap">Ngữ pháp</SelectItem>
-            <SelectItem value="luyenthi">Luyện thi</SelectItem>
-            <SelectItem value="luyennghe">Luyện nghe</SelectItem>
-            <SelectItem value="dochieu">Đọc hiểu</SelectItem>
-          </SelectGroup>
-        </SelectContent>
-      </Select>
-    </div>
-  );
-};
+import { useQuery } from "@tanstack/react-query";
+import { TopicService } from "@/app/services";
 
 const Filter: React.FC = () => {
   const [active, setActive] = useState<number>(0);
@@ -49,7 +26,7 @@ const Filter: React.FC = () => {
   };
   return (
     <div className="flex gap-2">
-      <Button
+      {/* <Button
         onClick={() => handleClick(0)}
         className={`${
           active === 0
@@ -68,61 +45,81 @@ const Filter: React.FC = () => {
         }`}
       >
         Mới nhất
-      </Button>
+      </Button> */}
     </div>
   );
 };
 
 const Home: React.FC = () => {
   const [posts, setPosts] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [end, setEnd] = useState<boolean>(false);
+  const [selectedTopic, setSelectedTopic] = useState("all");
+
   const createpost = (post: any) => {
-    console.log("posts before:", posts);
     setPosts((prev) => [post, ...prev]);
   };
   const axiosJWT = createAxiosInstance();
 
-  async function getPostByLastID() {
-    try {
-      if (!end) {
-        setIsLoading(true);
-        let lastId = "";
-        if (posts.length > 0) lastId = posts[posts.length - 1].data._id;
-        const newData = await axiosJWT.get(
-          `${process.env.NEXT_PUBLIC_BASE_URL_V2}/posts/page`,
-          {
-            params: {
-              lastPostId: lastId,
-              pageSize: 5,
-            },
-          }
-        );
-        if (newData.data.length === 0) {
-          toast.warning("Bạn đã đến posts cuối cùng");
-          setEnd(true);
+  const { refetch, isLoading } = useQuery({
+    queryKey: ["posts", selectedTopic ],
+    queryFn: async () => {
+      let lastId = "";
+      if (posts && posts.length > 0) lastId = posts[posts.length - 1].data._id;
+      const newData = await axiosJWT.get(
+        `${process.env.NEXT_PUBLIC_BASE_URL_V2}/posts/page`,
+        {
+          params: {
+            lastPostId: lastId,
+            pageSize: 5,
+            ...(selectedTopic !== "all" && { topic: selectedTopic }),
+          },
         }
-        if (posts.length > 20 && newData.data.length > 0) {
-          setPosts(() => {
-            const updatedPosts = [...newData.data];
-            return updatedPosts;
-          });
-        } else
-          setPosts((prevData) => {
-            const updatedPosts = [...prevData, ...newData.data];
-            return updatedPosts;
-          });
-        setIsLoading(false);
-      }
-    } catch (err) {
-      setIsLoading(false);
-    }
-  }
+      );
+      if (posts.length > 20 && newData.data.length > 0) {
+        setPosts(() => {
+          const updatedPosts = [...newData.data];
+          return updatedPosts;
+        });
+      } else
+        setPosts((prevData) => {
+          const updatedPosts = [...prevData, ...newData.data];
+          return updatedPosts;
+        });
+      return newData.data;
+    },
+  });
+
+  const { data: allTopics } = useQuery({
+    queryKey: ["topics"],
+    queryFn: async () => {
+      const topics = await TopicService.getAll();
+      return topics?.data ?? [];
+    },
+  });
+
   useEffect(() => {
-    getPostByLastID();
-    // create socket connection to server
-    connectSocket();
-  }, []);
+    let isMounted = true;
+
+    const fetchData = async () => {
+      if (isMounted) {
+        setPosts([]);
+      }
+
+      await Promise.all([setPostsPromise]);
+      refetch();
+    };
+
+    const setPostsPromise = new Promise((resolve) => {
+      setPosts([]);
+      resolve({});
+    });
+
+    fetchData();
+
+    // Cleanup function
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedTopic]);
 
   const elRef = useCallback(
     (node: any) => {
@@ -131,7 +128,7 @@ const Home: React.FC = () => {
           (entries) => {
             if (entries[0].isIntersecting) {
               // Gọi hàm fetch data
-              getPostByLastID();
+              refetch();
             }
           },
           { threshold: 0 }
@@ -153,14 +150,31 @@ const Home: React.FC = () => {
 
   const deleteByPostId = async (id: any) => {
     const newpost = posts.filter((item: any) => item.data._id !== id);
-    console.log("NewPost", newpost);
     setPosts(newpost);
   };
+
   return (
     <div className="infinite-scroll-container w-full">
       <CreatePost add={createpost} />
       <div className="flex justify-between my-4">
-        <TopicSelect />
+        <Select onValueChange={setSelectedTopic}>
+          <SelectTrigger className="w-[150px]">
+            <SelectValue placeholder="Chọn chủ đề" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectLabel>Loại bài viết</SelectLabel>
+              <SelectItem value={"all"} key={0}>
+                Tất cả
+              </SelectItem>
+              {allTopics?.map((item: any) => (
+                <SelectItem value={item._id} key={item._id}>
+                  {item.topicName}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
         <Filter />
       </div>
       <ul className="w-full flex flex-col gap-4 mt-4">

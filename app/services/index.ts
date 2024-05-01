@@ -5,6 +5,8 @@ import { FlashcardService } from "./flashcardService";
 import { PostService } from "./postService";
 import { ReactionService } from "./reactionService";
 import { CalendarService } from "./calendarService";
+import { UserService } from "./userService";
+import { TopicService } from "./topicService";
 
 export {
   CommentService,
@@ -14,4 +16,6 @@ export {
   ReactionService,
   ChatService,
   CalendarService,
+  UserService,
+  TopicService
 };

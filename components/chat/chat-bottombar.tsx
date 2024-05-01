@@ -4,7 +4,6 @@ import {
   Paperclip,
   PlusCircle,
   SendHorizontal,
-  Smile,
   ThumbsUp,
 } from "lucide-react";
 import Link from "next/link";
@@ -12,7 +11,7 @@ import React, { useRef, useState } from "react";
 import { buttonVariants } from "../ui/button";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { Message, loggedInUserData } from "@/app/constants/data";
+import { Message } from "@/app/constants/data";
 import { Textarea } from "../ui/textarea";
 import { EmojiPicker } from "./emoji-picker";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
@@ -36,15 +35,14 @@ export default function ChatBottombar({
     setMessage(event.target.value);
   };
 
-  const user = useAppSelector(state => state.auth.userinfor)
-
+  const user = useAppSelector((state) => state.auth.userinfor);
 
   const handleThumbsUp = () => {
     const newMessage: Message = {
       from: user,
       content: "👍",
       imgs_url: [],
-      chatRoomId: ""
+      chatRoomId: "",
     };
     sendMessage(newMessage);
     setMessage("");
@@ -56,7 +54,7 @@ export default function ChatBottombar({
         from: user,
         content: message.trim(),
         imgs_url: [],
-        chatRoomId: ""
+        chatRoomId: "",
       };
       sendMessage(newMessage);
       setMessage("");

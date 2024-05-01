@@ -23,6 +23,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { RiSearchLine } from "react-icons/ri";
 
 export default function Chat() {
   const [openFriend, setOpenFriend] = useState(true);
@@ -126,13 +127,13 @@ export default function Chat() {
     <Popover open={chatOpen} onOpenChange={setChatOpen}>
       <PopoverTrigger asChild>
         <Button
-          className={`fixed bottom-6 right-4 rounded-full w-14 h-14 ${
+          className={`fixed bottom-6 right-4 rounded-full w-12 h-12 shadow-lg border-none p-3 ${
             chatOpen ? "invisible" : ""
           }`}
           variant="outline"
         >
           <Image
-            className="h-8 w-8 drop-shadow-lg object-contain"
+            className="h-10 w-10 drop-shadow-lg object-contain"
             src={chat}
             alt="chat"
           />
@@ -156,7 +157,7 @@ export default function Chat() {
                   placeholder="Nhập tên để tìm kiếm"
                 />
                 <Button className="" onClick={handleSearch}>
-                  Tìm kiếm
+                  <RiSearchLine className="h-5 w-5" />
                 </Button>
               </div>
               {searchResult.length > 0 && (
