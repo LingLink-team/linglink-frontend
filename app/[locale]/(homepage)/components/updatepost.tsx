@@ -172,13 +172,13 @@ export default function UpdatePost({ data, isOpenModal, setIsOpenModal }: any) {
       let audioUrl = "";
 
       // Kiểm tra nếu các file đã được tải lên trước đó
-      if (myFile.every((file) => typeof file === "string")) {
+      if (myFile.every((file: any) => typeof file === "string")) {
         // Nếu các file là URL sẵn, không cần upload
         uploadedImages = myFile;
       } else {
         // Nếu có file đang chờ upload, thực hiện upload
         const fileUploadPromises = myFile
-          ? myFile.map((file) =>
+          ? myFile.map((file: any) =>
               file ? uploadFile(file) : Promise.resolve(null)
             )
           : [Promise.resolve(null)];
