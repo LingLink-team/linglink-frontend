@@ -7,13 +7,11 @@ import { IoNotifications } from "react-icons/io5";
 import { ImHome } from "react-icons/im";
 import { GiBookshelf } from "react-icons/gi";
 import { GiCardExchange } from "react-icons/gi";
-import { PiExam } from "react-icons/pi";
 import { GrSchedules } from "react-icons/gr";
 import {
   CreditCard,
   LifeBuoy,
   LogOut,
-  Settings,
   User,
   Languages,
 } from "lucide-react";
@@ -44,7 +42,7 @@ import { deleteCookie } from "cookies-next";
 import { deleteInfor } from "@/app/redux/slices/authSlice";
 import { useAppDispatch, useAppSelector } from "@/app/redux/store";
 import { toast } from "react-toastify";
-import { disconnectSocket } from "@/app/services/socketService";
+import { disconnectSocket } from "@/app/services/socketServicev2";
 import {
   Dialog,
   DialogClose,
@@ -57,10 +55,11 @@ import {
 } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
-import { Input } from "../ui/input";
 import { useFormik } from "formik";
 import { PasswordInput } from "../forms/input";
 import { UserService } from "@/app/services";
+import { useSocketStore } from "@/app/store/socketStore";
+import { FaUserFriends } from "react-icons/fa";
 
 export default function Header() {
   const [isSticky, setIsSticky] = useState(false);
@@ -86,13 +85,14 @@ export default function Header() {
   const changeLang = (lang: string) => {
     router.replace(`/${lang}`, { scroll: false });
   };
+  const { socket } = useSocketStore();
   const handleLogout = () => {
     // Xóa cookie khi người dùng đăng xuất
     try {
       dispatch(deleteInfor());
       deleteCookie("accessToken");
       deleteCookie("refreshToken");
-      disconnectSocket();
+      disconnectSocket(socket);
       toast.success("Đăng xuất thành công");
       router.push("/login");
     } catch (err: any) {
@@ -334,13 +334,13 @@ export default function Header() {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger>
-                  <Link href="/exam">
+                  <Link href="/friends">
                     <div
                       className={`flex justify-center h-full px-4 py-2 border-primary ${
                         pathname === "/exam" ? "text-primary" : "text-slate-500"
                       } border-b-0 hover:bg-slate-200 rounded-md`}
                     >
-                      <PiExam className="text-2xl" />
+                      <FaUserFriends className="text-2xl" />
                     </div>
                   </Link>
                   {pathname === "/exam" ? (
@@ -350,7 +350,7 @@ export default function Header() {
                   )}
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Làm đề thi</p>
+                  <p>Bạn bè</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

@@ -26,4 +26,30 @@ export class UserService {
     );
     return response;
   }
+
+  static async setTarget(
+    description: string,
+    startDate: Date,
+    targetDate: Date
+  ) {
+    const axiosInstance = createAxiosInstance();
+    const target = {
+      description: description,
+      startDate: startDate,
+      targetDate: targetDate,
+    };
+    const response: AxiosResponse<any> = await axiosInstance.post(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/user/target`,
+      target
+    );
+    return response;
+  }
+
+  static async getFriends(user: string) {
+    const axiosInstance = createAxiosInstance();
+    const response: AxiosResponse<any> = await axiosInstance.get(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/friends/${user}`
+    );
+    return response;
+  }
 }

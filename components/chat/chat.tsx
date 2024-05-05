@@ -1,10 +1,9 @@
-import { Message, User, UserData } from "@/app/constants/data";
+import { Message, User } from "@/app/constants/data";
 import ChatTopbar from "./chat-topbar";
 import { ChatList } from "./chat-list";
-import React, { useEffect, useState } from "react";
-import { getSocket } from "@/app/services/socketService";
-import { useAppSelector } from "@/app/redux/store";
+import React, { useEffect } from "react";
 import createAxiosInstance from "@/app/utils/axiosInstance";
+import { useSocketStore } from "@/app/store/socketStore";
 
 interface ChatProps {
   messages?: Message[];
@@ -14,43 +13,49 @@ interface ChatProps {
 }
 
 export function Chat({ selectedUser, isMobile, chatRoomId }: ChatProps) {
-
-  const sk = getSocket();
+  const { socket: sk } = useSocketStore();
   const [messagesState, setMessages] = React.useState<Message[]>([]);
   const axiosInstance = createAxiosInstance();
-  
+
   useEffect(() => {
     const getMessages = async () => {
       try {
-        const response = await axiosInstance.get(`${process.env.NEXT_PUBLIC_BASE_URL}/message`, 
-        {
-          params: {
-            chatRoomId: chatRoomId,
-          },
-        });
+        const response = await axiosInstance.get(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/message`,
+          {
+            params: {
+              chatRoomId: chatRoomId,
+            },
+          }
+        );
 
         setMessages(response.data);
       } catch (error) {
         console.error(error);
       }
-    }
+    };
 
     // get messages history for chat room
     getMessages();
 
-    sk?.on('getmessage', (newMessage) => {
-      if (newMessage.chatRoomId == chatRoomId) 
+    sk?.on("getmessage", (newMessage: any) => {
+      if (newMessage.chatRoomId == chatRoomId)
         setMessages((prevMessages) => [...prevMessages, newMessage]);
     });
 
     // Clean up listener when component unmounts
     return () => {
-      sk?.off('getmessage');
+      sk?.off("getmessage");
     };
   }, [sk]);
 
   const sendMessage = (newMessage: Message) => {
-    sk.emit('chat', {content: newMessage.content, chatRoomId: chatRoomId, imgs_url: newMessage.imgs_url, from: newMessage.from});
+    sk?.emit("chat", {
+      content: newMessage.content,
+      chatRoomId: chatRoomId,
+      imgs_url: newMessage.imgs_url,
+      from: newMessage.from,
+    });
   };
 
   return (

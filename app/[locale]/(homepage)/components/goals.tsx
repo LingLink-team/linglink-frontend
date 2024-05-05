@@ -2,7 +2,7 @@
 import { FaHeart } from "react-icons/fa";
 import { Progress } from "@/components/ui/progress";
 import { useState } from "react";
-import { format } from "date-fns";
+import { format, formatDistance } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -13,11 +13,22 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useAppSelector } from "@/app/redux/store";
+import { useQuery } from "@tanstack/react-query";
+import { UserService } from "@/app/services";
 
 export default function Goal() {
   const [score, setScore] = useState(20);
   const [total, setTotal] = useState(100);
   const [date, setDate] = useState<Date>();
+  const current_user = useAppSelector((state) => state.auth.userinfor);
+  const { data: user, refetch: refetchUser } = useQuery({
+    queryKey: ["profile", current_user._id],
+    queryFn: async () => {
+      const res = await UserService.getUserById(current_user._id);
+      return res.data;
+    },
+  });
   return (
     <div className="rounded-md bg-background shadow-md pt-2 pb-6 px-6 flex flex-col gap-2">
       <div className="font-medium flex items-center gap-2">
@@ -28,8 +39,27 @@ export default function Goal() {
         Bảng mục tiêu
       </div>
       <div className="rounded-md p-2 border border-ring border-dashed">
-        Mục tiêu: 800+ Writing <br />
-        Ngày thi: 22/12/2023
+        <div className="mt-2 space-y-2">
+          <div>
+            <span className="font-semibold text-sm">Ngày bắt đầu: </span>
+            <span>
+              {user &&
+                user.target &&
+                user.target.startDate &&
+                format(new Date(user.target.startDate), "dd/MM/yyyy")}
+            </span>
+          </div>
+          <div>
+            <span className="font-semibold text-sm">Ngày kết thúc: </span>
+            <span>
+              {user &&
+                user.target &&
+                user.target.targetDate &&
+                format(new Date(user.target.targetDate), "dd/MM/yyyy")}
+            </span>
+          </div>
+          <div className="text-sm">{user?.target?.description}</div>
+        </div>
       </div>
       <div className="font-medium mt-2 flex items-center gap-2">
         <div className="relative w-fit">
