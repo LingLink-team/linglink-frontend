@@ -24,6 +24,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { RiSearchLine } from "react-icons/ri";
+import { useSocketStore } from "@/app/store/socketStore";
 
 export default function Chat() {
   const [openFriend, setOpenFriend] = useState(true);
@@ -53,14 +54,14 @@ export default function Chat() {
   };
 
   const user = useAppSelector((state) => state.auth.userinfor);
-  const sk = getSocket();
+  const { socket: sk } = useSocketStore();
   const handleRequestFriend = async (request: {
     type: string;
     request: string;
     receiver: string;
     sender: string;
   }) => {
-    sk.emit("request-add-friend", {
+    sk?.emit("request-add-friend", {
       type: request.type,
       request: request.request,
       receiver: request.receiver,
@@ -91,9 +92,9 @@ export default function Chat() {
     const roomchats: any = await fetchChatRoom();
     if (sk) {
       roomchats.forEach((element: Room) => {
-        sk.emit("join-room", { chatRoomID: element.chatRoomId });
+        sk?.emit("join-room", { chatRoomID: element.chatRoomId });
       });
-      sk.on("request", (request) => {
+      sk?.on("request", (request: any) => {
         if (request.receiver === user._id.toString()) {
           if (request.type === "ADD") {
             setFriendRequests((prevRequests) => [
@@ -103,11 +104,11 @@ export default function Chat() {
           } else if (request.type === "NOTI") toast(request.content);
         }
       });
-      sk.on("notification", (noti) => {
+      sk.on("notification", (noti: any) => {
         toast(noti.sender + noti.content);
         fetchChatRoom();
       });
-      sk.on("accept_status", (noti) => {
+      sk.on("accept_status", (noti: any) => {
         fetchChatRoom();
       });
     }
