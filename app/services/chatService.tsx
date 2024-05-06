@@ -1,11 +1,4 @@
-import { AxiosResponse } from "axios";
 import createAxiosInstance from "../utils/axiosInstance";
-
-// interface FlashcardProps {
-//     word: string;
-//     answer: any;
-//     listid: string;
-// }
 
 export class ChatService {
   static async getChatRoom() {

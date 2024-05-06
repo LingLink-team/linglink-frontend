@@ -34,6 +34,21 @@ export class CommentService {
     );
     return response;
   }
+  static async updateCommentsByCommentId(
+    id: any,
+    newContent: string
+  ): Promise<AxiosResponse<any>> {
+    const axiosInstance = createAxiosInstance();
+    const response: AxiosResponse<any> = await axiosInstance.put(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/comments/${id}`,
+      {
+        content: newContent,
+        updatedAt: new Date(),
+      }
+    );
+    return response;
+  }
+
   static async deleteCommentsByPostId(id: any): Promise<AxiosResponse<any>> {
     const axiosInstance = createAxiosInstance();
     const response: AxiosResponse<any> = await axiosInstance.delete(

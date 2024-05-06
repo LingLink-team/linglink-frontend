@@ -15,12 +15,12 @@ export default function HomeLayout({
     <div className="w-full flex flex-col mb-10 relative">
       <Header />
       <div className="w-full flex flex-row gap-12 container h-full mt-5">
-        <div className="w-1/4 h-full sticky top-[100px]">
+        <div className="w-1/4 h-full sticky top-[75px]">
           <Goal />
         </div>
         <div className="w-1/2 flex flex-col gap-8">{children}</div>
-        <div className="w-1/4 h-full sticky top-[100px]">
-          <div className="scrollbar overflow-auto flex flex-col gap-4 max-h-[80vh]">
+        <div className="w-1/4 h-full sticky top-[75px]">
+          <div className="no-scrollbar overflow-auto flex flex-col gap-4 max-h-[80vh]">
             <FlashCardCreate />
             <ChatWithGemini />
             <Dictionary />
