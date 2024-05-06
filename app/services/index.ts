@@ -7,6 +7,7 @@ import { ReactionService } from "./reactionService";
 import { CalendarService } from "./calendarService";
 import { UserService } from "./userService";
 import { TopicService } from "./topicService";
+import { ProgressService } from "./progressService";
 
 export {
   CommentService,
@@ -17,5 +18,6 @@ export {
   ChatService,
   CalendarService,
   UserService,
-  TopicService
+  TopicService,
+  ProgressService,
 };

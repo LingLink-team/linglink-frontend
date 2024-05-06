@@ -1,5 +1,6 @@
 import { AxiosResponse } from "axios";
 import createAxiosInstance from "../utils/axiosInstance";
+import { ProgressService } from "./progressService";
 
 interface FlashcardProps {
   word: string;
@@ -64,6 +65,11 @@ export class FlashcardService {
         state: status,
       }
     );
+    const test = await ProgressService.updateFlashcard(
+      course._id,
+      status === "learned"
+    );
+    console.log(test);
     return response;
   }
   static async removeFlashcardfromFlashcardList(

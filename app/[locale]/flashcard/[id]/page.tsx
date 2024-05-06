@@ -96,6 +96,7 @@ const FlashcardShowAll = ({ data }: { data: any }) => {
   const handleChangeState = async (course: any, status = "") => {
     let result = await FlashcardService.changeStatus(course, status);
     queryClient.invalidateQueries({ queryKey: ["flashcardDetail"] });
+    queryClient.invalidateQueries({ queryKey: ["progress"] });
     return result.data;
   };
   return (

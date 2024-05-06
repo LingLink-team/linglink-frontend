@@ -33,6 +33,7 @@ import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { toast } from "react-toastify";
 import { FlashcardService } from "@/app/services";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function FlashCardCreate() {
   const sliderRef = useRef<any>(null);
@@ -95,10 +96,11 @@ export default function FlashCardCreate() {
     console.log(flashlist, idx);
     setFlashcards(flashlist[idx].flashcards);
   };
-
+  const queryClient = useQueryClient();
   const handleChangeState = async (course: any, status = "learned") => {
     let result = await FlashcardService.changeStatus(course, status);
     getFlashList();
+    queryClient.invalidateQueries({ queryKey: ["progress"] });
     return result.data;
   };
   return (

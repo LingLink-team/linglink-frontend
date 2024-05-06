@@ -28,6 +28,7 @@ export const FlashcardPlayer = ({ flashcards }: { flashcards: any }) => {
   const handleChangeState = async (course: any, status = "learned") => {
     let result = await FlashcardService.changeStatus(course, status);
     queryClient.invalidateQueries({ queryKey: ["flashcardDetail"] });
+    queryClient.invalidateQueries({ queryKey: ["progress"] });
     return result.data;
   };
   console.log(flashcards);
@@ -41,8 +42,8 @@ export const FlashcardPlayer = ({ flashcards }: { flashcards: any }) => {
         ref={sliderRef}
       >
         {flashcards &&
-        flashcards.filter((item: any) => item.status !== "learned")
-          .length > 0 ? (
+        flashcards.filter((item: any) => item.status !== "learned").length >
+          0 ? (
           flashcards
             .filter((item: any) => item.status !== "learned")
             .map((item: any, index: any) => {
@@ -73,12 +74,14 @@ export const FlashcardPlayer = ({ flashcards }: { flashcards: any }) => {
               );
             })
         ) : (
-          <div className="">Chưa tạo flashcard, hãy tạo flashcard để ôn tập từ vựng</div>
+          <div className="">
+            Chưa tạo flashcard, hãy tạo flashcard để ôn tập từ vựng
+          </div>
         )}
       </Swiper>
       {flashcards &&
-        flashcards.filter((item: any) => item.status !== "learned")
-          .length > 0 && (
+        flashcards.filter((item: any) => item.status !== "learned").length >
+          0 && (
           <div className="flex justify-end gap-2 mt-2">
             <Button className="" onClick={handlePrev}>
               <FaArrowLeft />
