@@ -91,7 +91,7 @@ const FlashcardThumbnail = ({
   );
 };
 
-export const FlashcardShowAll = ({ data }: { data: any }) => {
+const FlashcardShowAll = ({ data }: { data: any }) => {
   const queryClient = useQueryClient();
   const handleChangeState = async (course: any, status = "") => {
     let result = await FlashcardService.changeStatus(course, status);
