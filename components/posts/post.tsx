@@ -43,7 +43,12 @@ import {
 import { format } from "date-fns";
 import AudioPlayer from "react-h5-audio-player";
 import { IoSend } from "react-icons/io5";
-import { CommentService, PostService, ReactionService } from "@/app/services";
+import {
+  CommentService,
+  PostService,
+  ProgressService,
+  ReactionService,
+} from "@/app/services";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAppSelector } from "@/app/redux/store";
 import { Button } from "../ui/button";
@@ -143,6 +148,24 @@ const Header = ({ data, deletepost }: { data: any; deletepost: any }) => {
 };
 
 const Body = ({ content }: { content: any }) => {
+  const queryClient = useQueryClient();
+  const handleAnswer = async (idx: number) => {
+    if (idx === content.question.key) {
+      const res = await ProgressService.updateQuestion(
+        content.question._id,
+        true
+      );
+      console.log(res);
+      queryClient.invalidateQueries({ queryKey: ["progress"] });
+    } else {
+      const res = await ProgressService.updateQuestion(
+        content.question._id,
+        false
+      );
+      console.log(res);
+      queryClient.invalidateQueries({ queryKey: ["progress"] });
+    }
+  };
   return (
     <div className="flex flex-col gap-3 w-full">
       <div className="px-6">{content.content}</div>
@@ -191,6 +214,7 @@ const Body = ({ content }: { content: any }) => {
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <div
+                        onClick={() => handleAnswer(idx)}
                         className="w-full h-full transition duration-300 hover:scale-[1.05] hover:bg-slate-200 cursor-pointer rounded-md border border-ring p-2 flex justify-center"
                         key={idx}
                       >
