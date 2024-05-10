@@ -70,8 +70,6 @@ const Home: React.FC = () => {
         if (!lastPostTime) setLastPostTime(lastTime)
         else if (lastTime < lastPostTime) setLastPostTime(lastTime);
         else if (lastTime > lastPostTime) lastTime = lastPostTime;
-        console.log(lastTime)
-        console.log(posts)
       }
       const newData = await axiosJWT.get(
         `${process.env.NEXT_PUBLIC_BASE_URL_V2}/posts/page`,
@@ -110,6 +108,8 @@ const Home: React.FC = () => {
 
   useEffect(() => {
     let isMounted = true;
+    setLastPostTime(undefined);
+    setLastFetchTime(undefined);
 
     const fetchData = async () => {
       if (isMounted) {
