@@ -76,14 +76,16 @@ const Profile = ({ params }: { params: any }) => {
   const { refetch, isLoading } = useQuery({
     queryKey: ["posts", selectedTopic],
     queryFn: async () => {
-      let lastId = "";
-      if (posts && posts.length > 0) lastId = posts[posts.length - 1].data._id;
+      let lastTime = null;
+      if (posts && posts.length > 0) {
+        lastTime = posts[posts.length - 1].data.createdAt;
+      }
       const newData = await axiosJWT.get(
         `${process.env.NEXT_PUBLIC_BASE_URL_V2}/posts/page`,
         {
           params: {
             author: params.id,
-            lastPostId: lastId,
+            lastPostTime: lastTime,
             pageSize: 5,
             ...(selectedTopic !== "all" && { topic: selectedTopic }),
           },

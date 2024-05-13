@@ -52,6 +52,8 @@ const Filter: React.FC = () => {
 
 const Home: React.FC = () => {
   const [posts, setPosts] = useState<any[]>([]);
+  const [lastFetchTime, setLastFetchTime] = useState<Date>();
+  const [lastPostTime, setLastPostTime] = useState<Date>();
   const [selectedTopic, setSelectedTopic] = useState("all");
 
   const createpost = (post: any) => {
@@ -62,15 +64,21 @@ const Home: React.FC = () => {
   const { refetch, isLoading } = useQuery({
     queryKey: ["posts", selectedTopic ],
     queryFn: async () => {
-      let lastId = "";
-      if (posts && posts.length > 0) lastId = posts[posts.length - 1].data._id;
+      let lastTime = null;
+      if (posts && posts.length > 0) {
+        lastTime = posts[posts.length - 1].data.createdAt;
+        if (!lastPostTime) setLastPostTime(lastTime)
+        else if (lastTime < lastPostTime) setLastPostTime(lastTime);
+        else if (lastTime > lastPostTime) lastTime = lastPostTime;
+      }
       const newData = await axiosJWT.get(
         `${process.env.NEXT_PUBLIC_BASE_URL_V2}/posts/page`,
         {
           params: {
-            lastPostId: lastId,
+            lastPostTime: lastTime,
             pageSize: 5,
             ...(selectedTopic !== "all" && { topic: selectedTopic }),
+            lastFetchTime: lastFetchTime,
           },
         }
       );
@@ -83,7 +91,9 @@ const Home: React.FC = () => {
         setPosts((prevData) => {
           const updatedPosts = [...prevData, ...newData.data];
           return updatedPosts;
-        });
+        }
+      );
+      setLastFetchTime(new Date())
       return newData.data;
     },
   });
@@ -98,6 +108,8 @@ const Home: React.FC = () => {
 
   useEffect(() => {
     let isMounted = true;
+    setLastPostTime(undefined);
+    setLastFetchTime(undefined);
 
     const fetchData = async () => {
       if (isMounted) {
