@@ -8,7 +8,6 @@ import { IoMdArrowRoundBack } from "react-icons/io";
 import { Request, Room, User, roomsData } from "@/app/constants/data";
 import { ChatService } from "@/app/services";
 import { Avatar, AvatarImage } from "@radix-ui/react-avatar";
-import { getSocket } from "@/app/services/socketService";
 import { useAppSelector } from "@/app/redux/store";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -25,6 +24,7 @@ import {
 } from "@/components/ui/collapsible";
 import { RiSearchLine } from "react-icons/ri";
 import { useSocketStore } from "@/app/store/socketStore";
+import { connectSocket, disconnectSocket } from "@/app/services/socketService";
 
 export default function Chat() {
   const [openFriend, setOpenFriend] = useState(true);
@@ -54,7 +54,7 @@ export default function Chat() {
   };
 
   const user = useAppSelector((state) => state.auth.userinfor);
-  const { socket: sk } = useSocketStore();
+  const { socket: sk, setSocket } = useSocketStore();
   const handleRequestFriend = async (request: {
     type: string;
     request: string;
@@ -122,6 +122,16 @@ export default function Chat() {
     getFriendRequests();
     setChatRoom();
   }, [sk]);
+
+  useEffect(() => {
+    const connect = async () => {
+      console.log("CONNECTING ...", sk);
+      const new_socket = await connectSocket();
+      setSocket(new_socket);
+    };
+    connect();
+    return disconnectSocket(sk);
+  }, []);
   const [chatOpen, setChatOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   return (
@@ -140,7 +150,7 @@ export default function Chat() {
           />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="scroll-auto max-h-80vh max-w-[320px] w-[320px] fixed bottom-2 right-2">
+      <PopoverContent className="scroll-auto max-h-80vh max-w-[400px] w-[400px] fixed bottom-2 right-2">
         <div className="gap-4 py-4 h-full scroll-y-auto">
           {!openFriend && (
             <IoMdArrowRoundBack
@@ -149,7 +159,7 @@ export default function Chat() {
             />
           )}
           {openFriend && (
-            <div className="relative group flex flex-col gap-4 p-2 data-[collapsed=true]:p-2 overflow-auto max-h-[500px] no-scrollbar">
+            <div className="relative group flex flex-col gap-4 p-2 data-[collapsed=true]:p-2 overflow-auto max-h-[500px] w-full no-scrollbar">
               <div className="w-full flex gap-4 items-center">
                 <Input
                   type="text"
@@ -287,7 +297,7 @@ export default function Chat() {
               </nav>
             </div>
           )}
-          <div className="z-10 border rounded-lg max-w-5xl w-full h-full text-sm lg:flex">
+          <div className="z-10 border rounded-lg w-full h-full text-sm">
             {!openFriend && (
               <ChatLayout
                 chatRoomId={selectedRoom.chatRoomId}

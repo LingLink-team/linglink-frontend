@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { CalendarService } from "@/app/services";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
-
+import * as XLSX from "xlsx";
 const locales = {
   vi: viLocale,
 };
@@ -114,6 +114,30 @@ const Schedule: React.FC = () => {
       return data;
     },
   });
+
+  // const handleFileUpload = (event: any) => {
+  //   const file = event.target.files[0];
+  //   const reader = new FileReader();
+
+  //   reader.onload = (event) => {
+  //     const binaryString = event.target.result;
+  //     const workbook = XLSX.read(binaryString, { type: "binary" });
+  //     const sheetName = workbook.SheetNames[0];
+  //     const worksheet = workbook.Sheets[sheetName];
+  //     const data: any = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+  //     const jsonData = data.slice(1).map((row: any) => {
+  //       const obj = {};
+  //       data[0].forEach((key: any, index: any) => {
+  //         obj[key] = row[index];
+  //       });
+  //       return obj;
+  //     });
+
+  //     console.log(jsonData);
+  //   };
+
+  //   reader.readAsBinaryString(file);
+  // };
   return (
     <div className="my-8 container text-[26px] text-slate-500 font-bold text-center uppercase">
       <div className="rounded-lg bg-white shadow-lg p-4">

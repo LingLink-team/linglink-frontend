@@ -205,9 +205,6 @@ export default function CreatePost({ add }: { add: any }) {
       if (questionreq.content !== "" && !questionreq.answers.includes(""))
         setPreviewQuestion(questionreq);
       else toast.warn("Câu hỏi không hợp lệ");
-      // setQuestion('')
-      // setAnswers([])
-      // setAudio(null)
     } catch (err: any) {
       toast.error("Thêm thất bại");
     }

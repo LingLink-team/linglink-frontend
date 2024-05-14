@@ -58,6 +58,7 @@ import { motion } from "framer-motion";
 import { EmojiPicker } from "@/components/chat/emoji-picker";
 import { Textarea } from "../ui/textarea";
 import Link from "next/link";
+import { ReactionsModal } from "../reactionsModal";
 
 const Header = ({ data, deletepost }: { data: any; deletepost: any }) => {
   const user = useAppSelector((state) => state.auth.userinfor);
@@ -124,7 +125,7 @@ const Header = ({ data, deletepost }: { data: any; deletepost: any }) => {
                     Khi nhấn xác nhận sẽ xóa bài viết !
                   </DialogDescription>
                 </DialogHeader>
-                <DialogFooter className="sm:justify-start">
+                <DialogFooter className="justify-end w-full">
                   <DialogClose asChild>
                     <Button onClick={handleDeletePost} type="button">
                       Xác nhận
@@ -249,19 +250,24 @@ const Body = ({ content }: { content: any }) => {
 export const Post = ({ data, deletepost }: { data: any; deletepost: any }) => {
   const user = useAppSelector((state) => state.auth.userinfor);
   const queryClient = useQueryClient();
-  const [id] = useState<string>(data?.data?._id ?? "");
+  const [id, setId] = useState<string>(data.data._id);
   const [reaction, setReaction] = useState<string>("");
-  const [numlikes, setNumLikes] = useState<number>(data.numlikes);
-  const [numdislikes, setNumDisLikes] = useState<number>(data.numdislikes);
-  const [numcomments, setNumComments] = useState<number>(data.data.numComments);
-  const { data: comments, isFetching } = useQuery({
+  const [numlikes, setNumLikes] = useState<number>(data?.numlikes ?? 0);
+  const [numdislikes, setNumDisLikes] = useState<number>(
+    data?.numdislikes ?? 0
+  );
+  const [numcomments, setNumComments] = useState<number>(
+    data?.data?.numComments ?? 0
+  );
+
+  const { data: comments, refetch } = useQuery({
     queryKey: ["comments", id],
     queryFn: async () => {
       const response = await CommentService.getComments(data.data._id);
       return response.data;
     },
     // keepPreviousData: true,
-    refetchOnWindowFocus: false,
+    // refetchOnWindowFocus: false,
     retry: false,
   });
 
@@ -275,14 +281,13 @@ export const Post = ({ data, deletepost }: { data: any; deletepost: any }) => {
         content: comment,
         post: data.data._id,
       };
-      const response = await CommentService.createComment(commentToCreate);
+      await CommentService.createComment(commentToCreate);
       setNumComments(numcomments + 1);
       setComment("");
       queryClient.invalidateQueries({ queryKey: ["comments", id] });
       setIsLoading(false);
     } catch (error: any) {
       setIsLoading(false);
-      console.error("Failed to create comment:", error.message);
     }
   };
 
@@ -307,22 +312,35 @@ export const Post = ({ data, deletepost }: { data: any; deletepost: any }) => {
           if (reaction == "likepost") setNumLikes(numlikes - 1);
         }
       }
-      const response = await ReactionService.reactionPost(type, id);
+      await ReactionService.reactionPost(type, id);
+      refetchReactions();
       // queryClient.invalidateQueries({ queryKey: ['reactions', id] });
-    } catch (error: any) {
-      console.error("Failed to reaction:", error.message);
-    }
+    } catch (error: any) {}
   };
+
   useEffect(() => {
+    refetch();
     if (data.like) setReaction("likepost");
     if (data.dislike) setReaction("dislikepost");
   }, []);
+
   const addcomment = async () => {
     setNumComments(numcomments + 1);
   };
   const deletecomment = async () => {
     setNumComments(numcomments - 1);
   };
+
+  const { data: reactions, refetch: refetchReactions } = useQuery({
+    queryKey: ["reactions", data.data._id],
+    queryFn: async () => {
+      const reactions = await ReactionService.getReactionPost(data.data._id);
+      return reactions.data;
+    },
+  });
+
+  const [isOpenReactions, setIsOpenReactions] = useState<boolean>(false);
+
   return (
     <div className="py-2 shadow-md rounded-md w-full bg-background flex flex-col gap-3">
       <Header data={data.data} deletepost={deletepost} />
@@ -330,12 +348,24 @@ export const Post = ({ data, deletepost }: { data: any; deletepost: any }) => {
       <div className="px-6">
         <div className="flex flex-row justify-between">
           <div className="flex flex-row gap-1">
-            <div className="flex flex-row gap-2 items-center text-sm p-2">
-              <Image src={like} alt="like" width={18} height={18} />
+            <div className="flex flex-row gap-2 items-center text-sm p-2 cursor-pointer">
+              <Image
+                onClick={() => setIsOpenReactions(true)}
+                src={like}
+                alt="like"
+                width={18}
+                height={18}
+              />
               {numlikes}
             </div>
-            <div className="flex flex-row gap-2 items-center text-sm p-2">
-              <Image src={dislike} alt="dislike" width={18} height={18} />
+            <div className="flex flex-row gap-2 items-center text-sm p-2 cursor-pointer">
+              <Image
+                onClick={() => setIsOpenReactions(true)}
+                src={dislike}
+                alt="dislike"
+                width={18}
+                height={18}
+              />
               {numdislikes}
             </div>
           </div>
@@ -343,6 +373,11 @@ export const Post = ({ data, deletepost }: { data: any; deletepost: any }) => {
             {numcomments} bình luận
           </div>
         </div>
+        <ReactionsModal
+          isOpen={isOpenReactions}
+          onOpenChange={setIsOpenReactions}
+          reactions={reactions}
+        />
         <hr className="h-[1px] bg-slate-200" />
         <div className="flex flex-row justify-between py-2">
           <div className="flex flex-row gap-6">
@@ -453,11 +488,11 @@ export const Post = ({ data, deletepost }: { data: any; deletepost: any }) => {
                   </div>
                   <div className="mb-4 flex flex-col-reverse gap-3">
                     {comments &&
-                      comments.map((comment: any, index: any) => {
+                      comments.map((comment: any) => {
                         return (
                           <Comment
                             props={comment}
-                            key={index}
+                            key={data.data._id}
                             id={data.data._id}
                             addcomment={addcomment}
                             deletecomment={deletecomment}
