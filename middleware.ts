@@ -1,6 +1,7 @@
 import createMiddleware from "next-intl/middleware";
 // import { NextResponse } from 'next/server'
 import { NextRequest, NextResponse } from "next/server";
+import { connectSocket } from "./app/services/socketService";
 
 const intlMiddleware = createMiddleware({
   // A list of all locales that are supported
@@ -21,10 +22,9 @@ export function middleware(request: NextRequest) {
     request.nextUrl.pathname = `${process.env.NEXT_PUBLIC_URL}/login`;
     request.nextUrl.href = `${process.env.NEXT_PUBLIC_URL}/login`;
     return NextResponse.redirect(new URL("/login", request.url));
-  } else {
-    return intlMiddleware(request);
   }
-  return NextResponse.redirect(new URL("/", request.url));
+  return intlMiddleware(request);
+  // return NextResponse.redirect(new URL("/", request.url));
 }
 
 export const config = {

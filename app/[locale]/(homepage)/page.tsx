@@ -16,6 +16,7 @@ import CreatePost from "./components/createpost";
 import createAxiosInstance from "@/app/utils/axiosInstance";
 import { useQuery } from "@tanstack/react-query";
 import { TopicService } from "@/app/services";
+import { toast } from "react-toastify";
 
 const Filter: React.FC = () => {
   const [active, setActive] = useState<number>(0);
@@ -55,6 +56,7 @@ const Home: React.FC = () => {
   const [lastFetchTime, setLastFetchTime] = useState<Date>();
   const [lastPostTime, setLastPostTime] = useState<Date>();
   const [selectedTopic, setSelectedTopic] = useState("all");
+  const [isEnd, setIsEnd] = useState<boolean>(false);
 
   const createpost = (post: any) => {
     setPosts((prev) => [post, ...prev]);
@@ -62,39 +64,47 @@ const Home: React.FC = () => {
   const axiosJWT = createAxiosInstance();
 
   const { refetch, isLoading } = useQuery({
-    queryKey: ["posts", selectedTopic ],
+    queryKey: ["posts", selectedTopic],
+    refetchOnWindowFocus: false,
     queryFn: async () => {
-      let lastTime = null;
-      if (posts && posts.length > 0) {
-        lastTime = posts[posts.length - 1].data.createdAt;
-        if (!lastPostTime) setLastPostTime(lastTime)
-        else if (lastTime < lastPostTime) setLastPostTime(lastTime);
-        else if (lastTime > lastPostTime) lastTime = lastPostTime;
+      if (!isEnd) {
+        let lastTime = null;
+        if (posts && posts.length > 0) {
+          lastTime = posts[posts.length - 1].data.createdAt;
+          if (!lastPostTime) setLastPostTime(lastTime);
+          else if (lastTime < lastPostTime) setLastPostTime(lastTime);
+          else if (lastTime > lastPostTime) lastTime = lastPostTime;
+        }
+        const newData = await axiosJWT.get(
+          `${process.env.NEXT_PUBLIC_BASE_URL_V2}/posts/page`,
+          {
+            params: {
+              lastPostTime: lastTime,
+              pageSize: 5,
+              ...(selectedTopic !== "all" && { topic: selectedTopic }),
+              lastFetchTime: lastFetchTime,
+            },
+          }
+        );
+        if (posts.length > 20 && newData.data.length > 0) {
+          setPosts(() => {
+            const updatedPosts = [...newData.data];
+            return updatedPosts;
+          });
+        } else {
+          setPosts((prevData) => {
+            const updatedPosts = [...prevData, ...newData.data];
+            return updatedPosts;
+          });
+          if (newData.data.length === 0) {
+            setIsEnd(true);
+            toast.warning("Đã đến post cuối cùng");
+          }
+        }
+        setLastFetchTime(new Date());
+        return newData.data;
       }
-      const newData = await axiosJWT.get(
-        `${process.env.NEXT_PUBLIC_BASE_URL_V2}/posts/page`,
-        {
-          params: {
-            lastPostTime: lastTime,
-            pageSize: 5,
-            ...(selectedTopic !== "all" && { topic: selectedTopic }),
-            lastFetchTime: lastFetchTime,
-          },
-        }
-      );
-      if (posts.length > 20 && newData.data.length > 0) {
-        setPosts(() => {
-          const updatedPosts = [...newData.data];
-          return updatedPosts;
-        });
-      } else
-        setPosts((prevData) => {
-          const updatedPosts = [...prevData, ...newData.data];
-          return updatedPosts;
-        }
-      );
-      setLastFetchTime(new Date())
-      return newData.data;
+      return [];
     },
   });
 
@@ -107,31 +117,24 @@ const Home: React.FC = () => {
   });
 
   useEffect(() => {
-    let isMounted = true;
+    const delay = 500;
     setLastPostTime(undefined);
     setLastFetchTime(undefined);
-
-    const fetchData = async () => {
-      if (isMounted) {
-        setPosts([]);
-      }
-
-      await Promise.all([setPostsPromise]);
-      refetch();
-    };
-
-    const setPostsPromise = new Promise((resolve) => {
-      setPosts([]);
-      resolve({});
-    });
-
-    fetchData();
-
-    // Cleanup function
-    return () => {
-      isMounted = false;
-    };
+    setPosts([]);
+    let timeoutId: any = "";
+    if (isEnd) {
+      setIsEnd(false);
+    } else {
+      timeoutId = setTimeout(() => {
+        refetch();
+      }, delay);
+    }
+    return () => clearTimeout(timeoutId);
   }, [selectedTopic]);
+
+  useEffect(() => {
+    refetch();
+  }, [isEnd]);
 
   const elRef = useCallback(
     (node: any) => {
@@ -193,7 +196,7 @@ const Home: React.FC = () => {
         {posts.map((post, index) => {
           if (index === posts.length - 1)
             return (
-              <div key={index}>
+              <div key={post.data._id}>
                 <li ref={elRef} className="w-full flex justify-center">
                   <Post data={post} deletepost={deleteByPostId} />
                 </li>
@@ -209,7 +212,7 @@ const Home: React.FC = () => {
             );
           else
             return (
-              <li key={index} className="w-full flex justify-center">
+              <li key={post.data._id} className="w-full flex justify-center">
                 <Post data={post} deletepost={deleteByPostId} />
               </li>
             );

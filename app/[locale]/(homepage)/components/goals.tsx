@@ -76,7 +76,7 @@ export const FlashcardShowAll = ({ data }: { data: any }) => {
       </div>
     </div>
   );
-}
+};
 
 export default function Goal() {
   const [date, setDate] = useState<any>(new Date());
@@ -181,9 +181,13 @@ export default function Goal() {
         <div className="flex items-center gap-2 justify-between">
           <span>
             <span className="font-bold text-blue-400">
-              {progress?.length > 0 &&
+              {progress &&
+                progress?.length > 0 &&
                 progress[0].totalQuestions.length -
                   progress[0].wrongAnswerQuestions.length}
+            </span>
+            <span className="font-bold text-blue-400">
+              /{progress?.length > 0 && progress[0].totalQuestions.length}
             </span>{" "}
             câu trả lời đúng
           </span>
@@ -204,7 +208,8 @@ export default function Goal() {
         <div>
           Tỷ lệ trả lời đúng:{" "}
           <span className="font-bold text-green-400">
-            {progress?.length > 0 &&
+            {progress &&
+            progress?.length > 0 &&
             !isNaN(
               ((progress[0].totalQuestions.length -
                 progress[0].wrongAnswerQuestions.length) *

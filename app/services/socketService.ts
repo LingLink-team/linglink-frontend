@@ -1,4 +1,3 @@
-import { DefaultEventsMap } from "@socket.io/component-emitter";
 import { AxiosResponse } from "axios";
 import { io, Socket } from "socket.io-client";
 import createAxiosInstance from "../utils/axiosInstance";
@@ -16,6 +15,6 @@ export async function connectSocket() {
   });
 }
 
-export function disconnectSocket(socket:any) {
-  socket.disconnect();
+export function disconnectSocket(socket: any) {
+  socket?.disconnect();
 }

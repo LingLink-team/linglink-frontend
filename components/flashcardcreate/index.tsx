@@ -34,6 +34,7 @@ import { Input } from "../ui/input";
 import { toast } from "react-toastify";
 import { FlashcardService } from "@/app/services";
 import { useQueryClient } from "@tanstack/react-query";
+import { AiFillEdit } from "react-icons/ai";
 
 export default function FlashCardCreate() {
   const sliderRef = useRef<any>(null);
@@ -92,9 +93,13 @@ export default function FlashCardCreate() {
       toast.error("Tạo thất bại");
     }
   };
+
+  const [selectedFlashlist, setSelectedFlashlist] = useState<any>();
+
   const selectFlashlist = (idx: any) => {
-    console.log(flashlist, idx);
     setFlashcards(flashlist[idx].flashcards);
+    setSelectedFlashlist(flashlist[idx]);
+    setListid(flashlist[idx]._id);
   };
   const queryClient = useQueryClient();
   const handleChangeState = async (course: any, status = "learned") => {
@@ -116,7 +121,11 @@ export default function FlashCardCreate() {
               {flashlist.length > 0 &&
                 flashlist.map((item: any, index: any) => {
                   return (
-                    <SelectItem key={index} value={index}>
+                    <SelectItem
+                      className="truncate ..."
+                      key={index}
+                      value={index}
+                    >
                       {item.name}
                     </SelectItem>
                   );
@@ -124,11 +133,11 @@ export default function FlashCardCreate() {
             </SelectGroup>
           </SelectContent>
         </Select>
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2 ml-2">
           <Sheet>
             <SheetTrigger asChild>
               <Button className="mb-2" variant="outline">
-                <MdOutlineAddCircleOutline className="text-xl" />
+                <MdOutlineAddCircleOutline className="" />
               </Button>
             </SheetTrigger>
             <SheetContent>
@@ -160,74 +169,77 @@ export default function FlashCardCreate() {
               </SheetFooter>
             </SheetContent>
           </Sheet>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button className="mb-2" variant="outline">
+                <AiFillEdit />
+              </Button>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>Thêm Flashcard</SheetTitle>
+                <SheetDescription>
+                  Tạo flashcard để học tập từ vựng nhanh chóng.
+                </SheetDescription>
+              </SheetHeader>
+              <div className="grid gap-4 py-4">
+                <Select
+                  onValueChange={(value: any) => setListid(value)}
+                  defaultValue={selectedFlashlist?._id}
+                >
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Chọn bộ từ vựng" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Bộ từ vựng của bạn</SelectLabel>
+                    </SelectGroup>
+                    {flashlist.length > 0 &&
+                      flashlist.map((item: any, index: any) => {
+                        return (
+                          <SelectItem key={index} value={item._id}>
+                            {item.name}
+                          </SelectItem>
+                        );
+                      })}
+                  </SelectContent>
+                </Select>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="word" className="text-right">
+                    Từ vựng
+                  </Label>
+                  <Input
+                    value={word}
+                    onChange={(e) => setWord(e.target.value)}
+                    id="word"
+                    placeholder="Hello"
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="mean" className="text-right">
+                    Nghĩa
+                  </Label>
+                  <Input
+                    value={answer}
+                    onChange={(e) => setAnswer(e.target.value)}
+                    id="mean"
+                    placeholder="Xin chào"
+                    className="col-span-3"
+                  />
+                </div>
+              </div>
+              <SheetFooter>
+                <SheetClose asChild>
+                  <Button onClick={createFlashcard} type="submit">
+                    Tạo flashcard
+                  </Button>
+                </SheetClose>
+              </SheetFooter>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
-      <Sheet>
-        <SheetTrigger asChild>
-          <Button className="mb-2" variant="outline">
-            Thêm flashcard
-          </Button>
-        </SheetTrigger>
-        <SheetContent>
-          <SheetHeader>
-            <SheetTitle>Thêm Flashcard</SheetTitle>
-            <SheetDescription>
-              Tạo flashcard để học tập từ vựng nhanh chóng.
-            </SheetDescription>
-          </SheetHeader>
-          <div className="grid gap-4 py-4">
-            <Select onValueChange={(value: any) => setListid(value)}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Chọn bộ từ vựng" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Bộ từ vựng của bạn</SelectLabel>
-                </SelectGroup>
-                {flashlist.length > 0 &&
-                  flashlist.map((item: any, index: any) => {
-                    return (
-                      <SelectItem key={index} value={item._id}>
-                        {item.name}
-                      </SelectItem>
-                    );
-                  })}
-              </SelectContent>
-            </Select>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="word" className="text-right">
-                Từ vựng
-              </Label>
-              <Input
-                value={word}
-                onChange={(e) => setWord(e.target.value)}
-                id="word"
-                placeholder="Hello"
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="mean" className="text-right">
-                Nghĩa
-              </Label>
-              <Input
-                value={answer}
-                onChange={(e) => setAnswer(e.target.value)}
-                id="mean"
-                placeholder="Xin chào"
-                className="col-span-3"
-              />
-            </div>
-          </div>
-          <SheetFooter>
-            <SheetClose asChild>
-              <Button onClick={createFlashcard} type="submit">
-                Tạo flashcard
-              </Button>
-            </SheetClose>
-          </SheetFooter>
-        </SheetContent>
-      </Sheet>
       <Swiper
         modules={[Navigation, Pagination, Scrollbar, A11y]}
         navigation={false}
@@ -235,7 +247,9 @@ export default function FlashCardCreate() {
         slidesPerView={1}
         ref={sliderRef}
       >
-        {flashcards && flashcards.length > 0 ? (
+        {flashcards &&
+        flashcards.filter((item: any) => item.status !== "learned").length >
+          0 ? (
           flashcards
             .filter((item: any) => item.status !== "learned")
             .map((item: any, index: any) => {
@@ -267,18 +281,22 @@ export default function FlashCardCreate() {
             })
         ) : (
           <SwiperSlide>
-            <div className="">Chưa tạo flashcard, nhấn + để tạo</div>
+            <div className="h-[160px] my-4 border border-slate-400 rounded-md border-dashed flex items-center p-4 justify-center text-center text-sm">
+              Nhấn vào biểu tượng chỉnh sửa để thêm mới flashcard
+            </div>
           </SwiperSlide>
         )}
       </Swiper>
-      <div className="flex justify-end gap-2 mt-2">
-        <Button className="py-2 px-4 h-fit" onClick={handlePrev}>
-          <FaArrowLeft className="h-3 w-3" />
-        </Button>
-        <Button className="py-2 px-4 h-fit" onClick={handleNext}>
-          <FaArrowRight className="h-3 w-3" />
-        </Button>
-      </div>
+      {flashcards && flashcards.length > 0 && (
+        <div className="flex justify-end gap-2 mt-2">
+          <Button className="py-2 px-4 h-fit" onClick={handlePrev}>
+            <FaArrowLeft className="h-3 w-3" />
+          </Button>
+          <Button className="py-2 px-4 h-fit" onClick={handleNext}>
+            <FaArrowRight className="h-3 w-3" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

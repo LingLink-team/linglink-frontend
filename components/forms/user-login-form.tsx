@@ -20,7 +20,7 @@ import { toast } from "react-toastify";
 import Link from "next/link";
 import { PasswordInput } from "./input";
 import { useSocketStore } from "@/app/store/socketStore";
-import { connectSocket } from "@/app/services/socketServicev2";
+import { connectSocket } from "@/app/services/socketService";
 
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
