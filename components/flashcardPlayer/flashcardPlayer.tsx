@@ -31,7 +31,6 @@ export const FlashcardPlayer = ({ flashcards }: { flashcards: any }) => {
     queryClient.invalidateQueries({ queryKey: ["progress"] });
     return result.data;
   };
-  console.log(flashcards);
   return (
     <div>
       <Swiper

@@ -15,7 +15,6 @@ import dislike from "@/app/assets/images/3670156.png";
 import Image from "next/image";
 
 export const ReactionsModal = ({ reactions, isOpen, onOpenChange }: any) => {
-    console.log("REACT", reactions)
   const [tab, setTab] = useState<string>("all");
   const tab_active = "text-primary border-b-2 border-b-primary";
   return (

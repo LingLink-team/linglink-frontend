@@ -257,7 +257,6 @@ export default function Goal() {
                             <div className="px-6 mb-4">
                               <AudioPlayer
                                 autoPlay={false}
-                                // onPlay={(e: any) => console.log("onPlay")}
                                 src={question.audio_url}
                                 className="w-full my-2"
                               />

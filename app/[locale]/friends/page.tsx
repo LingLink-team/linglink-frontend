@@ -4,7 +4,7 @@ import { User } from "@/app/constants/data";
 import { useAppSelector } from "@/app/redux/store";
 import { ChatService, UserService } from "@/app/services";
 import { useSocketStore } from "@/app/store/socketStore";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -23,7 +23,6 @@ const Friends: React.FC = () => {
     queryFn: async () => {
       if (user._id) {
         const friends = await UserService.getFriends(user._id);
-        console.log("Frinds", friends);
         return friends.data;
       }
     },
@@ -44,7 +43,6 @@ const Friends: React.FC = () => {
     queryFn: async () => {
       if (user._id) {
         const requests = await ChatService.getMyListRequest();
-        console.log(requests);
         return requests;
       }
     },
@@ -75,7 +73,7 @@ const Friends: React.FC = () => {
     } else if (request.type === "ACCEPT") {
       toast("Bạn đã đồng ý yêu cầu kết bạn từ " + request.sender);
     }
-    refetchRequests();
+    setTimeout(refetchRequests, 1000);
   };
 
   const [search, setSearch] = useState("");
@@ -96,9 +94,8 @@ const Friends: React.FC = () => {
   const active_menu = "border-b-2 border-b-primary text-primary";
   const deleteRequest = async (id: string) => {
     const results = await ChatService.deleteRequest(id);
-    console.log(results)
     toast.success("Hủy yêu cầu kết bạn thành công");
-    refetchMyRequests()
+    refetchMyRequests();
   };
   return (
     <div className="container">
@@ -165,13 +162,10 @@ const Friends: React.FC = () => {
                     className="flex gap-2 items-center"
                     href={`/profile/${friend._id}`}
                   >
-                    <Image
-                      className="w-12 h-12 mb-2 object-contain rounded-full"
-                      height={12}
-                      width={12}
-                      src={friend.avatar}
-                      alt="avatar"
-                    />
+                    <Avatar>
+                      <AvatarImage src={friend.avatar} alt="avatar" />
+                      <AvatarFallback> {friend.name}</AvatarFallback>
+                    </Avatar>
                     <div className="font-medium px-2 pt-2 pb-4">
                       {friend.name}
                     </div>
@@ -232,7 +226,7 @@ const Friends: React.FC = () => {
               {friendRequests?.map((request: any) => (
                 <div
                   key={request._id}
-                  className="bg-background w-full rounded-lg space-y-2"
+                  className="bg-background w-full rounded-lg space-y-2 shadow-lg"
                 >
                   <div className="flex flex-col gap-y-4">
                     <Link href={`/profile/${request.sender._id}`}>
@@ -307,18 +301,20 @@ const Friends: React.FC = () => {
                     className="bg-background p-2 rounded-lg flex gap-x-4 shadow-lg"
                     key={item._id}
                   >
-                    <Avatar className="flex justify-center items-center">
-                      <AvatarImage
-                        src={item.avatar}
-                        alt={item.avatar}
-                        width={8}
-                        height={8}
-                        className="h-fit w-fit max-w-12 max-h-12 rounded-full"
-                      />
-                    </Avatar>
+                    <Link href={`/profile/${item._id}`}>
+                      <Avatar className="flex justify-center items-center">
+                        <AvatarImage
+                          src={item.avatar}
+                          alt={item.avatar}
+                          width={8}
+                          height={8}
+                          className="h-fit w-fit max-w-12 max-h-12 rounded-full"
+                        />
+                      </Avatar>
+                    </Link>
                     <div className="flex flex-col">
                       <span>{item.name}</span>
-                      {friends.some(
+                      {friends?.some(
                         (friend: any) => friend._id === item._id
                       ) ? (
                         <div> Đã là bạn bè </div>
