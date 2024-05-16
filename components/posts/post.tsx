@@ -156,14 +156,12 @@ const Body = ({ content }: { content: any }) => {
         content.question._id,
         true
       );
-      console.log(res);
       queryClient.invalidateQueries({ queryKey: ["progress"] });
     } else {
       const res = await ProgressService.updateQuestion(
         content.question._id,
         false
       );
-      console.log(res);
       queryClient.invalidateQueries({ queryKey: ["progress"] });
     }
   };
@@ -202,7 +200,6 @@ const Body = ({ content }: { content: any }) => {
             <div className="px-6 mb-4">
               <AudioPlayer
                 autoPlay={false}
-                // onPlay={(e: any) => console.log("onPlay")}
                 src={content.question.audio_url}
                 className="w-full my-2"
               />

@@ -69,7 +69,6 @@ export class FlashcardService {
       course._id,
       status === "learned"
     );
-    console.log(test);
     return response;
   }
   static async removeFlashcardfromFlashcardList(

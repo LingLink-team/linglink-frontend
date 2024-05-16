@@ -100,7 +100,6 @@ const Schedule: React.FC = () => {
       end: end,
     });
     toast.success("Cập nhật sự kiện thành công");
-    console.log("result", result);
     setTitle("");
     setDescrip("");
     queryClient.invalidateQueries({ queryKey: ["schedule"] });
@@ -110,7 +109,6 @@ const Schedule: React.FC = () => {
     queryFn: async () => {
       const data = await CalendarService.get();
       setEvents(data.data);
-      console.log(data.data);
       return data;
     },
   });

@@ -54,7 +54,6 @@ export default function UserLoginForm({
         let userinfor = await axiosJWT.get("/user/me");
         dispatch(setInfor(userinfor.data));
         const newSocket = await connectSocket();
-        console.log(newSocket);
         setSocket(newSocket);
         router.push("/", { scroll: false });
         return response;

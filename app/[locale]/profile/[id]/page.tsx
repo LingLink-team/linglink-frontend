@@ -22,7 +22,12 @@ import { IoMdPersonAdd } from "react-icons/io";
 import { addDays, format } from "date-fns";
 import { FaCamera, FaHeart, FaSave } from "react-icons/fa";
 import { MdEdit } from "react-icons/md";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Popover,
@@ -46,6 +51,7 @@ import {
 import Link from "next/link";
 import { uploadFile } from "@/utils";
 import { changeAvatar } from "@/app/redux/slices/authSlice";
+import { TiUserDelete } from "react-icons/ti";
 
 const Profile = ({ params }: { params: any }) => {
   const current_user = useAppSelector((state) => state.auth.userinfor);
@@ -65,15 +71,24 @@ const Profile = ({ params }: { params: any }) => {
     setPosts((prev: any) => [post, ...prev]);
   };
   const axiosJWT = createAxiosInstance();
-  const { data: friends } = useQuery({
+  const { data: friends, refetch: refetchFriends } = useQuery({
     queryKey: ["friends", params?.id],
     queryFn: async () => {
       if (params.id) {
         const friends = await UserService.getFriends(params.id);
+        const search = friends.data.find(
+          (friend: any) => friend._id === current_user._id
+        );
+        if (search) setIsFriend(true);
+        else setIsFriend(false);
         return friends.data;
       }
     },
   });
+
+  const [isFriend, setIsFriend] = useState<boolean>(false);
+
+  const [isWaiting, setIsWaiting] = useState<boolean>(false);
 
   const { refetch, isLoading } = useQuery({
     queryKey: ["posts", selectedTopic],
@@ -199,25 +214,6 @@ const Profile = ({ params }: { params: any }) => {
   };
 
   const { socket: sk } = useSocketStore();
-  const handleRequestFriend = async (request: {
-    type: string;
-    request: string;
-    receiver: string;
-    sender: string;
-  }) => {
-    sk?.emit("request-add-friend", {
-      type: request.type,
-      request: request.request,
-      receiver: request.receiver,
-    });
-    if (request.type === "ADD") {
-      toast("Bạn đã gửi yêu cầu kết bạn đến " + request.sender);
-    } else if (request.type === "DENY") {
-      toast("Bạn đã từ chối yêu cầu kết bạn từ " + request.sender);
-    } else if (request.type === "ACCEPT") {
-      toast("Bạn đã đồng ý yêu cầu kết bạn từ " + request.sender);
-    }
-  };
 
   const inputFileRef = useRef<any>(null);
   const [avatarPreview, setAvatarPreview] = useState<string>(user?.avatar);
@@ -246,9 +242,66 @@ const Profile = ({ params }: { params: any }) => {
   const handleChangeAvatar = async () => {
     const newAvt = await uploadFile(avatarPreview);
     const response = await UserService.changeAvt(newAvt);
-    dispatch(changeAvatar(newAvt))
+    dispatch(changeAvatar(newAvt));
     toast.success("Đổi avatar thành công");
-    console.log(response);
+  };
+
+  const [openConfirm, setOpenConfirm] = useState<boolean>(false);
+  const handleDeleteFriend = async () => {
+    await UserService.deleteFriend(params.id);
+    toast.success("Hủy kết bạn thành công");
+    setIsFriend(true);
+    setOpenConfirm(false);
+    refetchFriends();
+    refetchRequests();
+  };
+
+  const [isRequest, setIsRequest] = useState<boolean>(false);
+
+  const { refetch: refetchRequests } = useQuery({
+    queryKey: ["requests"],
+    queryFn: async () => {
+      const requests = await ChatService.getMyListRequest();
+      const find = requests.find(
+        (item: any) => item.receiver._id === params.id
+      );
+      if (find) setIsRequest(true);
+      else setIsRequest(false);
+    },
+  });
+
+  const { refetch: refetchFriendRequests } = useQuery({
+    queryKey: ["friendrequests"],
+    queryFn: async () => {
+      const requests = await ChatService.getListRequest();
+      const find = requests.find(
+        (item: any) =>
+          item.receiver === current_user._id && item.sender._id === params.id
+      );
+      if (find) setIsWaiting(true);
+      else setIsWaiting(false);
+    },
+  });
+
+  const handleRequestFriend = async (request: {
+    type: string;
+    request: string;
+    receiver: string;
+    sender: string;
+  }) => {
+    sk?.emit("request-add-friend", {
+      type: request.type,
+      request: request.request,
+      receiver: request.receiver,
+    });
+    if (request.type === "ADD") {
+      toast("Bạn đã gửi yêu cầu kết bạn đến " + request.sender);
+      setIsRequest(true)
+    } else if (request.type === "DENY") {
+      toast("Bạn đã từ chối yêu cầu kết bạn từ " + request.sender);
+    } else if (request.type === "ACCEPT") {
+      toast("Bạn đã đồng ý yêu cầu kết bạn từ " + request.sender);
+    }
   };
   return (
     <div className="">
@@ -350,7 +403,10 @@ const Profile = ({ params }: { params: any }) => {
             </div>
           </div>
           <div>
-            {params.id !== current_user._id && (
+            {params.id !== current_user._id &&
+            !isFriend &&
+            !isRequest &&
+            !isWaiting ? (
               <Button
                 onClick={() =>
                   handleRequestFriend({
@@ -365,8 +421,24 @@ const Profile = ({ params }: { params: any }) => {
                 <IoMdPersonAdd />
                 Thêm bạn bè
               </Button>
+            ) : (
+              params.id !== current_user._id &&
+              isRequest && (
+                <Button variant="secondary" className="flex items-center gap-1">
+                  Chờ phản hồi
+                </Button>
+              )
             )}
-            {avatarPreview !== user?.avatarr && (
+            {params.id !== current_user._id && isWaiting && (
+              <div className="space-y-2 mt-4 flex flex-col p-2">
+                <Button
+                  variant="secondary"
+                >
+                 Chờ bạn phản hồi
+                </Button>
+              </div>
+            )}
+            {avatarPreview !== user?.avatar && params.id === user._id && (
               <Button
                 onClick={handleChangeAvatar}
                 className="flex gap-2 items-center"
@@ -374,6 +446,24 @@ const Profile = ({ params }: { params: any }) => {
                 <FaSave /> Lưu
               </Button>
             )}
+            {isFriend && params.id !== user._id && (
+              <Button
+                onClick={() => setOpenConfirm(true)}
+                variant={"secondary"}
+                className="flex gap-2 items-center"
+              >
+                <TiUserDelete /> Hủy kết bạn
+              </Button>
+            )}
+            <Dialog open={openConfirm} onOpenChange={setOpenConfirm}>
+              <DialogContent>
+                Bạn có chắc chắn muốn hủy kết bạn ?
+                <DialogFooter className="flex gap-2 justify-end">
+                  <Button variant="secondary">Hủy</Button>
+                  <Button onClick={handleDeleteFriend}>Xác nhận</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       </div>
