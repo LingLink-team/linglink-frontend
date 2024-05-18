@@ -28,7 +28,7 @@ export function ChatList({
   }, [messages]);
 
   return (
-    <div className="w-full overflow-y-auto overflow-x-hidden h-full flex flex-col max-h-[400px]">
+    <div className="w-full overflow-y-auto overflow-x-hidden h-full flex flex-col max-h-[500px]">
       <div
         ref={messagesContainerRef}
         className="w-full overflow-y-auto overflow-x-hidden h-full flex flex-col"
@@ -55,7 +55,9 @@ export function ChatList({
               }}
               className={cn(
                 "flex flex-col gap-2 p-4 whitespace-pre-wrap",
-                message.from.name !== selectedUser.name ? "items-end" : "items-start"
+                message.from.name !== selectedUser.name
+                  ? "items-end"
+                  : "items-start"
               )}
             >
               <div className="flex gap-3 items-center">

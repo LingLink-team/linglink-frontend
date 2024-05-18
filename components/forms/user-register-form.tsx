@@ -34,11 +34,9 @@ export default function UserSignInForm({ className, ...props }: UserAuthFormProp
                 });
                 toast.success("Đăng ký thành công")
                 router.push('/login', { scroll: true })
-                console.log(response)
                 return response
             }
             catch (err: any) {
-                console.log(err)
                 toast.error("Đăng ký thất bại")
             }
         },

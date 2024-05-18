@@ -5,10 +5,8 @@ import chat from "@/app/assets/images/chat.png";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { IoMdArrowRoundBack } from "react-icons/io";
-import { Request, Room, User, roomsData } from "@/app/constants/data";
+import { Room, User, roomsData } from "@/app/constants/data";
 import { ChatService } from "@/app/services";
-import { Avatar, AvatarImage } from "@radix-ui/react-avatar";
-import { getSocket } from "@/app/services/socketService";
 import { useAppSelector } from "@/app/redux/store";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -17,14 +15,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { ChevronsUpDown } from "lucide-react";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import { RiSearchLine } from "react-icons/ri";
 import { useSocketStore } from "@/app/store/socketStore";
+import { connectSocket, disconnectSocket } from "@/app/services/socketService";
+import { AvatarFallback, Avatar, AvatarImage } from "@/components/ui/avatar";
 
 export default function Chat() {
   const [openFriend, setOpenFriend] = useState(true);
@@ -37,54 +31,21 @@ export default function Chat() {
   };
 
   const [search, setSearch] = useState("");
-  const [searchResult, setSearchResult] = useState<User[]>([]);
-  const [friendRequests, setFriendRequests] = useState<Request[]>([
-    {
-      _id: "",
-      sender: { _id: "", email: "", name: "", avatar: "" },
-      receiver: { _id: "", email: "", name: "", avatar: "" },
-      status: "",
-    },
-  ]);
+  const [searchResult, setSearchResult] = useState<any>([]);
 
   const handleSearch = async () => {
-    const result = await ChatService.searchFriendsByName(search);
-    setSearchResult(result);
-    setIsSearchOpen(true);
+    const result = rooms.filter((room: any) => room.friends?.name.includes(search))
+    setSearchResult(result)
   };
 
   const user = useAppSelector((state) => state.auth.userinfor);
-  const { socket: sk } = useSocketStore();
-  const handleRequestFriend = async (request: {
-    type: string;
-    request: string;
-    receiver: string;
-    sender: string;
-  }) => {
-    sk?.emit("request-add-friend", {
-      type: request.type,
-      request: request.request,
-      receiver: request.receiver,
-    });
-    if (request.type === "ADD") {
-      toast("Bạn đã gửi yêu cầu kết bạn đến " + request.sender);
-      setSearchResult([]);
-    } else if (request.type === "DENY") {
-      toast("Bạn đã từ chối yêu cầu kết bạn từ " + request.sender);
-      setFriendRequests((prevRequests) =>
-        prevRequests.filter((req) => req._id.toString() !== request.request)
-      );
-    } else if (request.type === "ACCEPT") {
-      toast("Bạn đã đồng ý yêu cầu kết bạn từ " + request.sender);
-      setFriendRequests((prevRequests) =>
-        prevRequests.filter((req) => req._id.toString() !== request.request)
-      );
-    }
-  };
+  const { socket: sk, setSocket } = useSocketStore();
+ 
   // Lấy danh sách room chat
   async function fetchChatRoom() {
     const roomchats = await ChatService.getChatRoom();
     setRooms(roomchats);
+    setSearchResult(roomchats)
     return roomchats;
   }
 
@@ -97,10 +58,6 @@ export default function Chat() {
       sk?.on("request", (request: any) => {
         if (request.receiver === user._id.toString()) {
           if (request.type === "ADD") {
-            setFriendRequests((prevRequests) => [
-              ...prevRequests,
-              request.request,
-            ]);
           } else if (request.type === "NOTI") toast(request.content);
         }
       });
@@ -113,17 +70,20 @@ export default function Chat() {
       });
     }
   }
-  async function getFriendRequests() {
-    const requests = await ChatService.getListRequest();
-    setFriendRequests(requests);
-  }
 
   useEffect(() => {
-    getFriendRequests();
     setChatRoom();
   }, [sk]);
+
+  useEffect(() => {
+    const connect = async () => {
+      const new_socket = await connectSocket();
+      setSocket(new_socket);
+    };
+    connect();
+    return disconnectSocket(sk);
+  }, []);
   const [chatOpen, setChatOpen] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   return (
     <Popover open={chatOpen} onOpenChange={setChatOpen}>
       <PopoverTrigger asChild>
@@ -140,7 +100,7 @@ export default function Chat() {
           />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="scroll-auto max-h-80vh max-w-[320px] w-[320px] fixed bottom-2 right-2">
+      <PopoverContent className="scroll-auto max-h-80vh max-w-[400px] w-[400px] fixed bottom-2 right-2">
         <div className="gap-4 py-4 h-full scroll-y-auto">
           {!openFriend && (
             <IoMdArrowRoundBack
@@ -149,7 +109,7 @@ export default function Chat() {
             />
           )}
           {openFriend && (
-            <div className="relative group flex flex-col gap-4 p-2 data-[collapsed=true]:p-2 overflow-auto max-h-[500px] no-scrollbar">
+            <div className="relative group flex flex-col gap-4 p-2 data-[collapsed=true]:p-2 overflow-auto max-h-[500px] w-full no-scrollbar">
               <div className="w-full flex gap-4 items-center">
                 <Input
                   type="text"
@@ -161,123 +121,20 @@ export default function Chat() {
                   <RiSearchLine className="h-5 w-5" />
                 </Button>
               </div>
-              {searchResult.length > 0 && (
-                <Collapsible
-                  open={isSearchOpen}
-                  onOpenChange={setIsSearchOpen}
-                  className="space-y-2"
-                >
-                  <div className="flex items-center justify-between space-x-4">
-                    <h4 className="font-medium">Kết quả tìm kiếm</h4>
-                    <CollapsibleTrigger asChild>
-                      <Button variant="ghost" size="sm" className="w-9 p-0">
-                        <ChevronsUpDown className="h-4 w-4" />
-                      </Button>
-                    </CollapsibleTrigger>
-                  </div>
-                  <CollapsibleContent className="space-y-2">
-                    {searchResult?.map((item: User) => (
-                      <div
-                        className="bg-gray-100 p-2 w-full rounded-lg flex gap-x-4"
-                        key={item._id}
-                      >
-                        <Avatar className="flex justify-center items-center">
-                          <AvatarImage
-                            src={item.avatar}
-                            alt={item.avatar}
-                            width={8}
-                            height={8}
-                            className="h-fit w-fit max-w-12 max-h-12 rounded-full"
-                          />
-                        </Avatar>
-                        <div className="flex flex-col w-full">
-                          <span>{item.name}</span>
-                          <button
-                            className="text-left text-sm mt-2 text-primary"
-                            onClick={() =>
-                              handleRequestFriend({
-                                type: "ADD",
-                                receiver: item._id.toString(),
-                                request: "",
-                                sender: item.name,
-                              })
-                            }
-                          >
-                            Gửi kết bạn
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </CollapsibleContent>
-                </Collapsible>
-              )}
-              {friendRequests.length > 0 && (
-                <div className="relative group flex flex-col gap-4 p-2 data-[collapsed=true]:p-2 ">
-                  {/* ...existing code... */}
-                  {friendRequests.map((request) => (
-                    <div
-                      key={request._id}
-                      className="bg-gray-100 p-2 w-full rounded-lg flex gap-x-4"
-                    >
-                      <Avatar className="flex justify-center items-center">
-                        <AvatarImage
-                          src={request.sender.avatar}
-                          alt={request.sender.name}
-                          width={8}
-                          height={8}
-                          className="h-fit w-fit max-w-12 max-h-12 rounded-full"
-                        />
-                      </Avatar>
-                      <div className="flex flex-col justify-center">
-                        <p>{request.sender.name}</p>
-                        <div className="flex gap-x-2">
-                          <button
-                            onClick={() =>
-                              handleRequestFriend({
-                                type: "ACCEPT",
-                                request: request._id.toString(),
-                                receiver: request.sender._id.toString(),
-                                sender: request.sender.name,
-                              })
-                            }
-                          >
-                            Đồng ý
-                          </button>
-                          <button
-                            onClick={() =>
-                              handleRequestFriend({
-                                type: "DENY",
-                                request: request._id.toString(),
-                                receiver: request.sender._id.toString(),
-                                sender: request.sender.name,
-                              })
-                            }
-                          >
-                            Từ chối
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
               <nav className="grid gap-2 group-[[data-collapsed=true]]:justify-center group-[[data-collapsed=true]]:px-2 w-full">
                 <h2 className="font-medium">Danh sách bạn bè</h2>
-                {rooms.map((room, index) => (
+                {searchResult.map((room: any, index: any) => (
                   <div
                     onClick={() => handleChooseFriend(room)}
                     key={index}
                     className="bg-gray-100 p-2 w-full rounded-lg cursor-pointer flex gap-x-4"
                   >
-                    <Avatar className="flex justify-center items-center">
+                    <Avatar>
                       <AvatarImage
                         src={room.friends.avatar}
                         alt={room.friends.avatar}
-                        width={8}
-                        height={8}
-                        className="h-fit w-fit max-w-12 max-h-12 rounded-full"
                       />
+                      <AvatarFallback>CN</AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col w-full">
                       <span>{room.friends.name}</span>
@@ -287,7 +144,7 @@ export default function Chat() {
               </nav>
             </div>
           )}
-          <div className="z-10 border rounded-lg max-w-5xl w-full h-full text-sm lg:flex">
+          <div className="z-10 border rounded-lg w-full h-full text-sm">
             {!openFriend && (
               <ChatLayout
                 chatRoomId={selectedRoom.chatRoomId}

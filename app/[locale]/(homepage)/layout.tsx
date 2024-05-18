@@ -23,7 +23,6 @@ export default function HomeLayout({
           <div className="no-scrollbar overflow-auto flex flex-col gap-4 max-h-[80vh]">
             <FlashCardCreate />
             <ChatWithGemini />
-            <Dictionary />
           </div>
         </div>
       </div>

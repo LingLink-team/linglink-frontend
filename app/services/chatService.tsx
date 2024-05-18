@@ -36,6 +36,22 @@ export class ChatService {
     return result.data;
   }
 
+  static async getMyListRequest() {
+    const axiosInstance = createAxiosInstance();
+    let result = await axiosInstance.get(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/request-add-friend/add`
+    );
+    return result.data;
+  }
+
+  static async deleteRequest(id: string) {
+    const axiosInstance = createAxiosInstance();
+    let result = await axiosInstance.delete(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/request-add-friend/${id}`
+    );
+    return result.data;
+  }
+
   static async requestAddFriend(receiver: string) {
     const axiosInstance = createAxiosInstance();
     try {

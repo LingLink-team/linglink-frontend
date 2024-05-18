@@ -8,13 +8,7 @@ import { ImHome } from "react-icons/im";
 import { GiBookshelf } from "react-icons/gi";
 import { GiCardExchange } from "react-icons/gi";
 import { GrSchedules } from "react-icons/gr";
-import {
-  CreditCard,
-  LifeBuoy,
-  LogOut,
-  User,
-  Languages,
-} from "lucide-react";
+import { CreditCard, LifeBuoy, LogOut, User, Languages } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -42,7 +36,7 @@ import { deleteCookie } from "cookies-next";
 import { deleteInfor } from "@/app/redux/slices/authSlice";
 import { useAppDispatch, useAppSelector } from "@/app/redux/store";
 import { toast } from "react-toastify";
-import { disconnectSocket } from "@/app/services/socketServicev2";
+import { disconnectSocket } from "@/app/services/socketService";
 import {
   Dialog,
   DialogClose,
@@ -60,6 +54,9 @@ import { PasswordInput } from "../forms/input";
 import { UserService } from "@/app/services";
 import { useSocketStore } from "@/app/store/socketStore";
 import { FaUserFriends } from "react-icons/fa";
+import { RiBookFill } from "react-icons/ri";
+import Dictionary from "../dictionary";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 
 export default function Header() {
   const [isSticky, setIsSticky] = useState(false);
@@ -287,7 +284,7 @@ export default function Header() {
                   <Link href="/course">
                     <div
                       className={`flex justify-center h-full px-4 py-2 border-primary ${
-                        pathname === "/course"
+                        pathname.split("/").includes("course")
                           ? "text-primary"
                           : "text-slate-500"
                       } border-b-0 hover:bg-slate-200 rounded-md`}
@@ -295,7 +292,7 @@ export default function Header() {
                       <GiBookshelf className="text-2xl" />
                     </div>
                   </Link>
-                  {pathname === "/course" ? (
+                  {pathname.split("/").includes("course") ? (
                     <div className="w-full border-b-4 border-primary"></div>
                   ) : (
                     ""
@@ -312,7 +309,7 @@ export default function Header() {
                   <Link href="/flashcard">
                     <div
                       className={`flex justify-center h-full px-4 py-2 border-primary ${
-                        pathname === "/flashcard"
+                        pathname.split("/").includes("flashcard")
                           ? "text-primary"
                           : "text-slate-500"
                       } border-b-0 hover:bg-slate-200 rounded-md`}
@@ -320,7 +317,7 @@ export default function Header() {
                       <GiCardExchange className="text-2xl" />
                     </div>
                   </Link>
-                  {pathname === "/flashcard" ? (
+                  {pathname.split("/").includes("flashcard") ? (
                     <div className="w-full border-b-4 border-primary"></div>
                   ) : (
                     ""
@@ -337,13 +334,15 @@ export default function Header() {
                   <Link href="/friends">
                     <div
                       className={`flex justify-center h-full px-4 py-2 border-primary ${
-                        pathname === "/exam" ? "text-primary" : "text-slate-500"
+                        pathname.split("/").includes("friends")
+                          ? "text-primary"
+                          : "text-slate-500"
                       } border-b-0 hover:bg-slate-200 rounded-md`}
                     >
                       <FaUserFriends className="text-2xl" />
                     </div>
                   </Link>
-                  {pathname === "/exam" ? (
+                  {pathname.split("/").includes("friends") ? (
                     <div className="w-full border-b-4 border-primary"></div>
                   ) : (
                     ""
@@ -381,10 +380,47 @@ export default function Header() {
             </TooltipProvider>
           </div>
         </div>
-        <div className="flex gap-6 py-2 basis-1/4 justify-end">
-          <div className="relative flex items-center">
-            <IoNotifications className="text-2xl text-slate-500" />
-            <span className="w-[10px] absolute right-0 top-[5px] h-[10px] rounded-full bg-red-500"></span>
+        <div className="flex gap-6 py-2 basis-1/4 justify-end items-center">
+          <div>
+            <Dialog>
+              <DialogTrigger asChild>
+                <button className="relative flex items-center h-full">
+                  <RiBookFill className="text-2xl text-slate-500 hover:text-primary transition duration-300 cursor-pointer" />
+                </button>
+              </DialogTrigger>
+              <DialogContent className="max-h-[60vh] overflow-y-auto">
+                <Dictionary />
+              </DialogContent>
+            </Dialog>
+          </div>
+          <div className="h-full flex items-center">
+            <Popover>
+              <PopoverTrigger asChild>
+                <div className="relative flex items-center h-full">
+                  <IoNotifications className="text-2xl text-slate-500 hover:text-primary transition duration-300 cursor-pointer" />
+                  <span className="w-[10px] absolute right-0 top-[5px] h-[10px] rounded-full bg-red-500" />
+                </div>
+              </PopoverTrigger>
+              <PopoverContent className="mt-[14px] space-y-2">
+                <div className='hover:bg-secondary transition-all duration-300 rounded-md p-2'>
+                  <div className="flex justify-between items-center">
+                    <div className="flex gap-2 items-center text-sm font-semibold">
+                      <Avatar>
+                        <AvatarImage src={""} />
+                        <AvatarFallback>Hello</AvatarFallback>
+                      </Avatar>
+                      Lâm Chinh
+                    </div>
+                    <div className="text-[12px] text-slate-400">1 hours ago</div>
+                  </div>
+                  <div className="space-y-2 mt-2">
+                    <p className="text-slate-500 text-sm">
+                      Chinh đã like bài viết của bạn
+                    </p>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

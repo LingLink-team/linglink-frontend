@@ -20,7 +20,7 @@ import { toast } from "react-toastify";
 import Link from "next/link";
 import { PasswordInput } from "./input";
 import { useSocketStore } from "@/app/store/socketStore";
-import { connectSocket } from "@/app/services/socketServicev2";
+import { connectSocket } from "@/app/services/socketService";
 
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
@@ -54,7 +54,6 @@ export default function UserLoginForm({
         let userinfor = await axiosJWT.get("/user/me");
         dispatch(setInfor(userinfor.data));
         const newSocket = await connectSocket();
-        console.log(newSocket);
         setSocket(newSocket);
         router.push("/", { scroll: false });
         return response;

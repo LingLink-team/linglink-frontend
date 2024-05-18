@@ -52,4 +52,23 @@ export class UserService {
     );
     return response;
   }
+
+  static async changeAvt(avt: string) {
+    const axiosInstance = createAxiosInstance();
+    const response: AxiosResponse<any> = await axiosInstance.put(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/user`,
+      {
+        avatar: avt,
+      }
+    );
+    return response;
+  }
+
+  static async deleteFriend(friend_id: string) {
+    const axiosInstance = createAxiosInstance();
+    const response: AxiosResponse<any> = await axiosInstance.delete(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/friends/${friend_id}`
+    );
+    return response;
+  }
 }

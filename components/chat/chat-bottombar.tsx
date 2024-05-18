@@ -79,7 +79,7 @@ export default function ChatBottombar({
 
   return (
     <div className="p-2 flex justify-between w-full items-center gap-2 border-t border-slate-200">
-      <div className="flex">
+      {/* <div className="flex">
         <Popover>
           <PopoverTrigger asChild>
             <Link
@@ -151,7 +151,7 @@ export default function ChatBottombar({
             ))}
           </div>
         )}
-      </div>
+      </div> */}
 
       <AnimatePresence initial={false}>
         <motion.div

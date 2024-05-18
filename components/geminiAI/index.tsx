@@ -22,6 +22,7 @@ import { useAppSelector } from "@/app/redux/store";
 import geminiimg from "@/app/assets/images/gemini.webp";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import chatbotIcon from "@/app/assets/images/icons/chatbot.png";
+import stream from "stream";
 
 interface Message {
   author: {
@@ -96,6 +97,18 @@ export default function ChatWithGemini() {
     const model = genAI.getGenerativeModel({ model: "gemini-pro-vision" });
 
     setIsLoading(true);
+    setMes((prevMes) => [
+      ...prevMes,
+      {
+        author: { name: user.name, avatar: user.avatar },
+        content: question,
+        image: myFile.length > 0 ? URL.createObjectURL(myFile[0]) : undefined,
+      },
+      {
+        author: { name: "Gemini AI", avatar: geminiimg.src },
+        content: "", // Tạo ra một tin nhắn mới với nội dung rỗng
+      },
+    ]);
 
     const imageParts = await Promise.all(
       myFile.map(async (file) => {
@@ -106,20 +119,20 @@ export default function ChatWithGemini() {
     const result = await model.generateContentStream([question, ...imageParts]);
     let text = "";
     for await (const chunk of result.stream) {
-      const chunkText = chunk.text();
+      const chunkText = chunk.text().replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\*(.*?)/g, '• $1');
       text += chunkText;
-      setMes(() => [
-        {
-          author: { name: user.name, avatar: user.avatar },
-          content: question,
-          image: myFile.length > 0 ? URL.createObjectURL(myFile[0]) : undefined,
-        },
-        {
-          author: { name: "Gemini AI", avatar: geminiimg.src },
-          content: text,
-        },
-      ]);
-      scrollToBottom();
+      setMes((prevMes) => {
+        // Cập nhật tin nhắn cuối cùng thay vì tạo ra một tin nhắn mới
+        const lastMessageIndex = prevMes.length - 1;
+        const lastMessage = prevMes[lastMessageIndex];
+        return [
+          ...prevMes.slice(0, lastMessageIndex),
+          {
+            ...lastMessage,
+            content: lastMessage.content + chunkText,
+          },
+        ];
+      });
     }
     setIsLoading(false);
     setQuestion("");
@@ -131,22 +144,35 @@ export default function ChatWithGemini() {
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
     setIsLoading(true);
+    setMes((prevMes) => [
+      ...prevMes,
+      {
+        author: { name: user.name, avatar: user.avatar },
+        content: question,
+      },
+      {
+        author: { name: "Gemini AI", avatar: geminiimg.src },
+        content: "", // Tạo ra một tin nhắn mới với nội dung rỗng
+      },
+    ]);
 
     const result = await model.generateContentStream(question);
     let text = "";
     for await (const chunk of result.stream) {
-      const chunkText = chunk.text();
+      const chunkText = chunk.text().replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\*(.*?)/g, '• $1');
       text += chunkText;
-      setMes(() => [
-        {
-          author: { name: user.name, avatar: user.avatar },
-          content: question,
-        },
-        {
-          author: { name: "Gemini AI", avatar: geminiimg.src },
-          content: text,
-        },
-      ]);
+      setMes((prevMes) => {
+        // Cập nhật tin nhắn cuối cùng thay vì tạo ra một tin nhắn mới
+        const lastMessageIndex = prevMes.length - 1;
+        const lastMessage = prevMes[lastMessageIndex];
+        return [
+          ...prevMes.slice(0, lastMessageIndex),
+          {
+            ...lastMessage,
+            content: lastMessage.content + chunkText,
+          },
+        ];
+      });
       scrollToBottom();
     }
 
@@ -187,6 +213,9 @@ export default function ChatWithGemini() {
                     <div>{message.author.name}</div>
                   </div>
 
+                  <div className="my-2 ml-2 whitespace-pre-line" dangerouslySetInnerHTML={{ __html: message.content }}>
+                    {/* {message.content} */}
+                  </div>
                   <div className="my-2 ml-2">
                     {message.image && (
                       <Image
@@ -196,8 +225,7 @@ export default function ChatWithGemini() {
                         alt="Uploaded"
                         className="max-h-[200px] w-auto mb-2"
                       />
-                    )}
-                    {message.content}
+                    )}                  
                   </div>
                 </div>
               ))}

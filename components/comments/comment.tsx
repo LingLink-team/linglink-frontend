@@ -29,9 +29,13 @@ import { Button } from "../ui/button";
 import { motion } from "framer-motion";
 import { EmojiPicker } from "@/components/chat/emoji-picker";
 import { Textarea } from "../ui/textarea";
-import { Input } from "../ui/input";
 import { FaSave } from "react-icons/fa";
 import { IoMdClose } from "react-icons/io";
+import like from "@/app/assets/images/download.svg";
+import dislike from "@/app/assets/images/3670156.png";
+import Image from "next/image";
+import { ReactionsModal } from "../reactionsModal";
+import Link from "next/link";
 
 function ChildComment({
   props,
@@ -70,6 +74,7 @@ function ChildComment({
       props.data._id
     );
     queryClient.invalidateQueries({ queryKey: ["childcomments", id] });
+    refetchReactions()
   };
   const handleDelete = async () => {
     if (user._id === props.data.author._id) {
@@ -81,13 +86,26 @@ function ChildComment({
       toast.error("Không được quyền xóa bình luận này!");
     }
   };
+  const { data: reactions, refetch: refetchReactions } = useQuery({
+    queryKey: ["reactions", props.data._id],
+    queryFn: async () => {
+      const reactions = await ReactionService.getReactionComment(
+        props.data._id
+      );
+      return reactions.data;
+    },
+  });
+
+  const [isOpenReactions, setIsOpenReactions] = useState<boolean>(false);
   return (
     <div className="w-full">
       <div className="flex flex-row gap-3">
-        <Avatar>
-          <AvatarImage src={props.data.author.avatar} alt="@shadcn" />
-          <AvatarFallback>CN</AvatarFallback>
-        </Avatar>
+        <Link href={`/profile/${props.data.author._id}`}>
+          <Avatar>
+            <AvatarImage src={props.data.author.avatar} alt="@shadcn" />
+            <AvatarFallback>CN</AvatarFallback>
+          </Avatar>
+        </Link>
         <div className="rounded-md p-2 bg-slate-50 w-full">
           <div className="flex justify-between items-center w-full">
             <div className="font-semibold">{props.data.author.name}</div>
@@ -114,7 +132,7 @@ function ChildComment({
                         Khi nhấn xác nhận sẽ xóa bình luận !
                       </DialogDescription>
                     </DialogHeader>
-                    <DialogFooter className="sm:justify-start">
+                    <DialogFooter className="sm:justify-end">
                       <DialogClose asChild>
                         <Button onClick={handleDelete} type="button">
                           Xác nhận
@@ -129,11 +147,11 @@ function ChildComment({
           <div>{props.data.content}</div>
         </div>
       </div>
-      <div className="px-12 flex flex-row gap-4">
+      <div className="px-12 flex flex-row gap-4 justify-between">
         <div className="flex flex-row gap-1">
           <div
             onClick={() => handleReaction("like")}
-            className={`text-gray-600  ${
+            className={`text-gray-600 ${
               reaction === "like" ? "!text-blue-400" : ""
             } text-[12px] font-bold hover:underline flex flex-row cursor-pointer gap-2 items-center p-2`}
           >
@@ -141,12 +159,41 @@ function ChildComment({
           </div>
           <div
             onClick={() => handleReaction("dislike")}
-            className={`text-gray-600  ${
+            className={`text-gray-600 ${
               reaction === "dislike" ? "!text-blue-400" : ""
             } text-[12px] font-bold hover:underline flex flex-row cursor-pointer gap-2 items-center p-2`}
           >
             Không thích
           </div>
+        </div>
+        <div className="flex gap-4">
+          <div className="flex gap-1 items-center text-sm text-slate-400">
+            <button
+              onClick={() => setIsOpenReactions(true)}
+              className="flex -space-x-1"
+            >
+              <Image
+                className="relative z-[1] border-[1px] border-white rounded-full"
+                src={like}
+                alt="like"
+                width={20}
+                height={20}
+              />
+              <Image
+                className="relative z-0 border-[1px] border-white rounded-full"
+                src={dislike}
+                alt="dislike"
+                width={20}
+                height={20}
+              />
+            </button>{" "}
+            {props.numlikes + props.numdislikes}
+          </div>
+          <ReactionsModal
+            isOpen={isOpenReactions}
+            onOpenChange={setIsOpenReactions}
+            reactions={reactions}
+          />
         </div>
       </div>
     </div>
@@ -170,7 +217,7 @@ export default function Comment({
   const [reaction, setReaction] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [showChildComments, setShowChildComments] = useState<boolean>(false);
-  const { data: childcomments, isFetching } = useQuery({
+  const { data: childcomments } = useQuery({
     queryKey: ["childcomments", props.data._id],
     queryFn: async () => {
       const response = await CommentService.getCommentsByCommentId(
@@ -197,6 +244,7 @@ export default function Comment({
     }
     await ReactionService.reactionComment(type, props.data._id);
     queryClient.invalidateQueries({ queryKey: ["comments", id] });
+    refetchReactions();
   };
   const [iscomment, setIsComment] = useState<boolean>(false);
   const [comment, setComment] = useState<string>("");
@@ -245,7 +293,6 @@ export default function Comment({
       props.data._id,
       changeComment
     );
-    console.log(res);
     toast.success("Cập nhật thành công");
     setIsChangeComment(false);
     setOriComment(changeComment);
@@ -255,14 +302,28 @@ export default function Comment({
     setIsChangeComment(false);
     setChangeComment(props.data.content);
   };
+
+  const { data: reactions, refetch: refetchReactions } = useQuery({
+    queryKey: ["reactions", props.data._id],
+    queryFn: async () => {
+      const reactions = await ReactionService.getReactionComment(
+        props.data._id
+      );
+      return reactions.data;
+    },
+  });
+
+  const [isOpenReactions, setIsOpenReactions] = useState<boolean>(false);
   return (
     <div className="px-6">
       <div className="flex flex-row gap-3">
-        <div>
-          <Avatar>
-            <AvatarImage src={props.data.author.avatar} alt="@shadcn" />
-            <AvatarFallback>CN</AvatarFallback>
-          </Avatar>
+        <div className="mt-2">
+          <Link href={`/profile/${props.data.author._id}`}>
+            <Avatar>
+              <AvatarImage src={props.data.author.avatar} alt="@shadcn" />
+              <AvatarFallback>CN</AvatarFallback>
+            </Avatar>
+          </Link>
         </div>
         <div className="rounded-md p-2 bg-slate-50 w-full">
           <div className="flex justify-between items-center w-full">
@@ -292,7 +353,7 @@ export default function Comment({
                         Khi nhấn xác nhận sẽ xóa bình luận !
                       </DialogDescription>
                     </DialogHeader>
-                    <DialogFooter className="sm:justify-start">
+                    <DialogFooter className="sm:justify-end">
                       <DialogClose asChild>
                         <Button onClick={handleDelete} type="button">
                           Xác nhận
@@ -337,7 +398,7 @@ export default function Comment({
           )}
         </div>
       </div>
-      <div className="px-12 flex flex-row gap-4">
+      <div className="px-12 flex flex-row gap-4 justify-between">
         <div className="flex flex-row gap-1">
           <div
             onClick={() => handleReaction("like")}
@@ -355,12 +416,41 @@ export default function Comment({
           >
             Không thích
           </div>
+          <div
+            onClick={() => setIsComment(!iscomment)}
+            className="text-[12px] font-bold hover:underline flex items-center cursor-pointer text-gray-600"
+          >
+            Phản hồi
+          </div>
         </div>
-        <div
-          onClick={() => setIsComment(!iscomment)}
-          className="text-[12px] font-bold hover:underline flex items-center cursor-pointer text-gray-600"
-        >
-          Phản hồi
+        <div className="flex gap-4">
+          <div className="flex gap-1 items-center text-sm text-slate-400">
+            <button
+              onClick={() => setIsOpenReactions(true)}
+              className="flex -space-x-1"
+            >
+              <Image
+                className="relative z-[1] border-[1px] border-white rounded-full"
+                src={like}
+                alt="like"
+                width={20}
+                height={20}
+              />
+              <Image
+                className="relative z-0 border-[1px] border-white rounded-full"
+                src={dislike}
+                alt="dislike"
+                width={20}
+                height={20}
+              />
+            </button>{" "}
+            {props.numlikes + props.numdislikes}
+          </div>
+          <ReactionsModal
+            isOpen={isOpenReactions}
+            onOpenChange={setIsOpenReactions}
+            reactions={reactions}
+          />
         </div>
       </div>
       <div>
