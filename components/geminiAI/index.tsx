@@ -158,8 +158,20 @@ export default function ChatWithGemini() {
 
     const result = await model.generateContentStream(question);
     let text = "";
+    let isBold = false;
     for await (const chunk of result.stream) {
-      const chunkText = chunk.text().replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\*(.*?)/g, '• $1');
+      let chunkText = chunk.text();
+      let startIndex = 0;
+      while ((startIndex = chunkText.indexOf('**', startIndex)) !== -1) {
+        if (isBold) {
+          chunkText = chunkText.substring(0, startIndex) + '</b>' + chunkText.substring(startIndex + 2);
+        } else {
+          chunkText = chunkText.substring(0, startIndex) + '<b>' + chunkText.substring(startIndex + 2);
+        }
+        isBold = !isBold;
+        startIndex += 3;
+      }
+      chunkText = chunkText.replace(/\*(.*?)/g, '• $1');
       text += chunkText;
       setMes((prevMes) => {
         // Cập nhật tin nhắn cuối cùng thay vì tạo ra một tin nhắn mới
