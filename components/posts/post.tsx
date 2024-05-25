@@ -59,6 +59,7 @@ import { EmojiPicker } from "@/components/chat/emoji-picker";
 import { Textarea } from "../ui/textarea";
 import Link from "next/link";
 import { ReactionsModal } from "../reactionsModal";
+import { useSocketStore } from "@/app/store/socketStore";
 
 const Header = ({ data, deletepost }: { data: any; deletepost: any }) => {
   const user = useAppSelector((state) => state.auth.userinfor);
@@ -279,6 +280,11 @@ export const Post = ({ data, deletepost }: { data: any; deletepost: any }) => {
         post: data.data._id,
       };
       await CommentService.createComment(commentToCreate);
+      sk?.emit("send-notification", {
+        reciever: data.data.author._id,
+        title: ' đã bình luận bài viết của bạn',
+        content: comment
+      });
       setNumComments(numcomments + 1);
       setComment("");
       queryClient.invalidateQueries({ queryKey: ["comments", id] });
@@ -287,9 +293,16 @@ export const Post = ({ data, deletepost }: { data: any; deletepost: any }) => {
       setIsLoading(false);
     }
   };
-
+  const { socket: sk } = useSocketStore();
   const handleReactionPost = async (type: string) => {
     try {
+      if (reaction != type) {
+        sk?.emit("send-notification", {
+          reciever: data.data.author._id,
+          title: ' đã ' + (type=='likepost'?'thích':'không thích') + ' bài viết của bạn',
+          content: ''
+        });
+      }
       if (type === "likepost") {
         if (reaction === "likepost") {
           setNumLikes(numlikes - 1);

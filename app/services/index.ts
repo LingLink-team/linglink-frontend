@@ -8,6 +8,7 @@ import { CalendarService } from "./calendarService";
 import { UserService } from "./userService";
 import { TopicService } from "./topicService";
 import { ProgressService } from "./progressService";
+import { NotificationService } from "./notificationService";
 
 export {
   CommentService,
@@ -20,4 +21,5 @@ export {
   UserService,
   TopicService,
   ProgressService,
+  NotificationService,
 };
