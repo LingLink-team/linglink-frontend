@@ -12,13 +12,24 @@ export class NotificationService {
   }
   static async get(lastNoti: string): Promise<AxiosResponse<any>> {
     const queryParams: any = {
-      lastNoti: lastNoti,
+      lastNoti: lastNoti !== "" ? lastNoti : undefined,
     };
     const axiosInstance = createAxiosInstance();
     const response: AxiosResponse<any> = await axiosInstance.get(
       `${process.env.NEXT_PUBLIC_BASE_URL}/notifications`,
       {
         params: queryParams,
+      }
+    );
+    return response;
+  }
+
+  static async view(ids: string[]): Promise<AxiosResponse<any>> {
+    const axiosInstance = createAxiosInstance();
+    const response: AxiosResponse<any> = await axiosInstance.post(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/notifications/view`,
+      {
+        ids: ids,
       }
     );
     return response;

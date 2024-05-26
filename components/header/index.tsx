@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import logo from "@/app/assets/images/linglink.png";
 import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
@@ -51,12 +51,52 @@ import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import { useFormik } from "formik";
 import { PasswordInput } from "../forms/input";
-import { UserService } from "@/app/services";
+import { NotificationService, UserService } from "@/app/services";
 import { useSocketStore } from "@/app/store/socketStore";
 import { FaUserFriends } from "react-icons/fa";
 import { RiBookFill } from "react-icons/ri";
 import Dictionary from "../dictionary";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { useQuery } from "@tanstack/react-query";
+import { Icons } from "../icons/icons";
+import { format } from "date-fns";
+
+function Notification({ notification }: any) {
+  const [isViewed, setIsViewed] = useState<boolean>(notification?.isViewed);
+  const handleView = async () => {
+    if (!notification.isViewed) {
+      await NotificationService.view([notification._id]);
+      setIsViewed(true);
+    }
+  };
+  return (
+    <div className="hover:bg-secondary transition-all duration-300 rounded-md p-2 relative">
+      <div
+        onClick={handleView}
+        className={`flex justify-between items-center ${
+          !isViewed && "cursor-pointer"
+        }`}
+      >
+        <div className="flex gap-2 items-center text-sm font-semibold">
+          <Avatar>
+            <AvatarImage src={notification.sender?.avatar} />
+            <AvatarFallback>{notification.sender.name}</AvatarFallback>
+          </Avatar>
+          {notification.sender.name}
+        </div>
+        <div className="text-[12px] text-slate-400 ml-2">
+          {format(new Date(notification.createdAt), "yyyy-MM-dd HH:mm:ss")}
+        </div>
+      </div>
+      <div className="space-y-2 mt-2">
+        <p className="text-slate-500 text-sm">{notification.title}</p>
+      </div>
+      {!isViewed && (
+        <div className="absolute w-3 h-3 bg-blue-600 top-1/2 right-1 rounded-full" />
+      )}
+    </div>
+  );
+}
 
 export default function Header() {
   const [isSticky, setIsSticky] = useState(false);
@@ -234,6 +274,65 @@ export default function Header() {
       </Dialog>
     );
   };
+
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [lastNoti, setLastNoti] = useState<any>("");
+  const [isEnd, setIsEnd] = useState<boolean>(false);
+
+  const { refetch, isLoading } = useQuery({
+    queryKey: ["notification", user._id],
+    refetchOnWindowFocus: false,
+    queryFn: async () => {
+      if (!isEnd) {
+        const newData = await NotificationService.get(lastNoti);
+        setLastNoti(newData.data?.slice(-1)[0]?._id);
+        if (notifications.length > 20 && newData.data.length > 0) {
+          setNotifications(() => {
+            const updated = [...newData.data];
+            return updated;
+          });
+        } else {
+          setNotifications((prevData: any) => {
+            const updated = [...prevData, ...newData.data];
+            return updated;
+          });
+          if (newData.data.length === 0) {
+            setIsEnd(true);
+          }
+        }
+        return newData.data;
+      }
+      return [];
+    },
+  });
+
+  const elRef = useCallback(
+    (node: any) => {
+      if (node !== null) {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            if (entries[0].isIntersecting) {
+              // Gọi hàm fetch data
+              refetch();
+            }
+          },
+          { threshold: 0 }
+        );
+
+        if (node) {
+          observer.observe(node);
+        }
+
+        return () => {
+          if (node) {
+            observer.unobserve(node);
+          }
+        };
+      }
+    },
+    [notifications]
+  );
+
   return (
     <div
       className={`h-full rounded-md w-full z-10 shadow-md bg-background sticky top-0 max-h-[56px]`}
@@ -398,27 +497,45 @@ export default function Header() {
               <PopoverTrigger asChild>
                 <div className="relative flex items-center h-full">
                   <IoNotifications className="text-2xl text-slate-500 hover:text-primary transition duration-300 cursor-pointer" />
-                  <span className="w-[10px] absolute right-0 top-[5px] h-[10px] rounded-full bg-red-500" />
+                  {notifications?.length > 0 &&
+                    notifications.find(
+                      (item: any) => !item?.isViewed
+                    ) && (
+                      <span className="w-[10px] absolute right-0 top-[5px] h-[10px] rounded-full bg-red-500" />
+                    )}
                 </div>
               </PopoverTrigger>
-              <PopoverContent className="mt-[14px] space-y-2">
-                <div className='hover:bg-secondary transition-all duration-300 rounded-md p-2'>
-                  <div className="flex justify-between items-center">
-                    <div className="flex gap-2 items-center text-sm font-semibold">
-                      <Avatar>
-                        <AvatarImage src={""} />
-                        <AvatarFallback>Hello</AvatarFallback>
-                      </Avatar>
-                      Lâm Chinh
-                    </div>
-                    <div className="text-[12px] text-slate-400">1 hours ago</div>
-                  </div>
-                  <div className="space-y-2 mt-2">
-                    <p className="text-slate-500 text-sm">
-                      Chinh đã like bài viết của bạn
-                    </p>
-                  </div>
-                </div>
+              <PopoverContent className="mt-[14px] space-y-2 max-h-[400px] overflow-y-auto">
+                {notifications.length === 0 && (
+                  <div className="text-sm">Không có thông báo</div>
+                )}
+                {notifications.map((notification, index) => {
+                  if (index === notifications?.length - 1)
+                    return (
+                      <div key={notification._id}>
+                        <li ref={elRef} className="w-full flex justify-center">
+                          <Notification notification={notification} />
+                        </li>
+                        {isLoading ? (
+                          <div className="w-full my-4 justify-center items-center flex gap-2 shadow-md bg-background py-2 rounded-md">
+                            <Icons.spinner className="mr-2 h-5 w-5 animate-spin" />{" "}
+                            Đang tải thông báo mới
+                          </div>
+                        ) : (
+                          ""
+                        )}
+                      </div>
+                    );
+                  else
+                    return (
+                      <li
+                        key={notification._id}
+                        className="w-full flex justify-center"
+                      >
+                        <Notification notification={notification} />
+                      </li>
+                    );
+                })}
               </PopoverContent>
             </Popover>
           </div>

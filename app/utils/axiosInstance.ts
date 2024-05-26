@@ -46,7 +46,6 @@ const createAxiosInstance = (): AxiosInstance => {
                     deleteCookie("accessToken")
                     deleteCookie("refreshToken")
                     window.location.href = '/login';
-                    toast.error("Phiên đăng nhập hết hạn, vui lòng đăng nhập lại")
                     throw refreshError
                 }
             }
