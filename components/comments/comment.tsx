@@ -57,12 +57,16 @@ function ChildComment({
   }, []);
   const { socket: sk } = useSocketStore();
   const handleReaction = async (type: string) => {
-    if (reaction != type) {
+    if (reaction != type && props.data.author._id !== user._id) {
       sk?.emit("send-notification", {
-        reciever: props.data.author._id,
-        title: ' đã ' + (type=='like'?'thích':'không thích') + ' bình luận của bạn',
-        content: ''
+        receiver: props.data.author._id,
+        title:
+          " đã " +
+          (type == "like" ? "thích" : "không thích") +
+          " bình luận của bạn",
+        content: "",
       });
+      queryClient.invalidateQueries({ queryKey: ["notification"] });
     }
     if (type === "like") {
       if (reaction === "like") {
@@ -82,7 +86,7 @@ function ChildComment({
       props.data._id
     );
     queryClient.invalidateQueries({ queryKey: ["childcomments", id] });
-    refetchReactions()
+    refetchReactions();
   };
   const handleDelete = async () => {
     if (user._id === props.data.author._id) {
@@ -238,12 +242,16 @@ export default function Comment({
   });
   const { socket: sk } = useSocketStore();
   const handleReaction = async (type: string) => {
-    if (reaction != type) {
+    if (reaction != type && props.data.author._id !== user._id) {
       sk?.emit("send-notification", {
-        reciever: props.data.author._id,
-        title: ' đã ' + (type=='like'?'thích':'không thích') + ' bình luận của bạn',
-        content: ''
+        receiver: props.data.author._id,
+        title:
+          " đã " +
+          (type == "like" ? "thích" : "không thích") +
+          " bình luận của bạn",
+        content: "",
       });
+      queryClient.invalidateQueries({ queryKey: ["notification"] });
     }
     if (type === "like") {
       if (reaction === "like") {
@@ -272,11 +280,14 @@ export default function Comment({
         comment: props.data._id,
       };
       const result = await CommentService.createComment(newComment);
-      sk?.emit("send-notification", {
-        reciever: props.data.author._id,
-        title: ' đã phản hồi bình luận của bạn',
-        content: comment
-      });
+      if (props.data.author._id !== user._id) {
+        sk?.emit("send-notification", {
+          receiver: props.data.author._id,
+          title: " đã phản hồi bình luận của bạn",
+          content: comment,
+        });
+        queryClient.invalidateQueries({ queryKey: ["notification"] });
+      }
       setIsLoading(false);
       setComment("");
       setIsComment(false);
