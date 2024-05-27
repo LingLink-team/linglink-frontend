@@ -62,7 +62,7 @@ export default function Chat() {
         }
       });
       sk.on("notification", (noti: any) => {
-        toast(noti.sender + noti.content);
+        toast(noti.sender.name + noti.title);
         fetchChatRoom();
       });
       sk.on("accept_status", (noti: any) => {
