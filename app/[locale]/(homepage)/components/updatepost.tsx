@@ -490,28 +490,31 @@ export default function UpdatePost({ data, isOpenModal, setIsOpenModal }: any) {
                 </div>
                 <div>
                   {previewquestion && (
-                    <div className="border px-2 py-4 rounded-lg">
+                    <div className="py-4 rounded-lg mb-2">
                       <div>
-                        <div className="text-md font-semibold mb-4">
-                          Câu hỏi: {previewquestion.content}
-                        </div>
-                        <div className="flex">
-                          <DialogTrigger asChild>
+                        <div className="flex justify-between items-center">
+                          <div className="text-md font-semibold mb-4">
+                            Câu hỏi: {previewquestion.content}
+                          </div>
+                          <div className="flex">
+                            <DialogTrigger asChild>
+                              <Button
+                                className="mb-4 bg-yellow-400 hover:bg-yellow-300"
+                                size="sm"
+                              >
+                                <FaEdit />
+                              </Button>
+                            </DialogTrigger>
                             <Button
-                              className="mb-4 bg-yellow-400 hover:bg-yellow-300"
+                              className="ml-2 mb-4 bg-red-400 hover:bg-red-300"
                               size="sm"
+                              onClick={deletequestion}
                             >
-                              <FaEdit />
+                              <MdDelete />
                             </Button>
-                          </DialogTrigger>
-                          <Button
-                            className="ml-2 mb-4 bg-red-400 hover:bg-red-300"
-                            size="sm"
-                            onClick={deletequestion}
-                          >
-                            <MdDelete />
-                          </Button>
+                          </div>
                         </div>
+
                         {audioFile && (
                           <AudioPlayer
                             autoPlay={false}
