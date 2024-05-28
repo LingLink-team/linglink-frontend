@@ -225,6 +225,7 @@ export default function UpdatePost({ data, isOpenModal, setIsOpenModal }: any) {
         clearInput();
       }
       setIsLoading(false);
+      queryClient.invalidateQueries({ queryKey: ["post", data?._id] });
     } catch (err: any) {
       setIsLoading(false);
       console.log(err);
@@ -234,6 +235,7 @@ export default function UpdatePost({ data, isOpenModal, setIsOpenModal }: any) {
   const addquestion = async () => {
     try {
       const questionreq = {
+        ...(previewquestion?._id && { _id: previewquestion?._id }),
         content: question,
         answers: answers,
         key: key,
@@ -284,7 +286,9 @@ export default function UpdatePost({ data, isOpenModal, setIsOpenModal }: any) {
           <DialogContent className="overflow-y-scroll max-h-[80vh] no-scrollbar">
             <DialogHeader>
               <DialogTitle>Chỉnh sửa bài viết</DialogTitle>
-              <DialogDescription>Chỉnh sửa thông tin và nhấn lưu để thay đổi</DialogDescription>
+              <DialogDescription>
+                Chỉnh sửa thông tin và nhấn lưu để thay đổi
+              </DialogDescription>
             </DialogHeader>
             <Dialog>
               <div className="">
@@ -493,12 +497,15 @@ export default function UpdatePost({ data, isOpenModal, setIsOpenModal }: any) {
                         </div>
                         <div className="flex">
                           <DialogTrigger asChild>
-                            <Button className="mb-4 bg-yellow-400" size="sm">
+                            <Button
+                              className="mb-4 bg-yellow-400 hover:bg-yellow-300"
+                              size="sm"
+                            >
                               <FaEdit />
                             </Button>
                           </DialogTrigger>
                           <Button
-                            className="ml-2 mb-4 bg-red-400"
+                            className="ml-2 mb-4 bg-red-400 hover:bg-red-300"
                             size="sm"
                             onClick={deletequestion}
                           >
