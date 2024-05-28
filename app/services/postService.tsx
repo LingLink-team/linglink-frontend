@@ -3,6 +3,19 @@ import createAxiosInstance from "../utils/axiosInstance";
 import { CommentService } from "./commentService";
 
 export class PostService {
+  static async getPostById(id: string): Promise<AxiosResponse<any>> {
+    const axiosInstance = createAxiosInstance();
+    const response: AxiosResponse<any> = await axiosInstance.get(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/posts/${id}`,
+      {
+        params: {
+          id: id,
+        },
+      }
+    );
+    return response;
+  }
+
   static async createPost(post: any): Promise<AxiosResponse<any>> {
     const axiosInstance = createAxiosInstance();
     const response: AxiosResponse<any> = await axiosInstance.post(

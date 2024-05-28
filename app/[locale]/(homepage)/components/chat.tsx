@@ -61,10 +61,6 @@ export default function Chat() {
           } else if (request.type === "NOTI") toast(request.content);
         }
       });
-      sk.on("notification", (noti: any) => {
-        toast(noti.sender.name + noti.title);
-        fetchChatRoom();
-      });
       sk.on("accept_status", (noti: any) => {
         fetchChatRoom();
       });
