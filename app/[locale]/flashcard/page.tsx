@@ -55,7 +55,7 @@ const FlashcardListThumbnail = ({ data, key }: { data: any; key: number }) => {
   return (
     <div
       key={key}
-      className="border border-gray-400 p-4 rounded-lg flex flex-col gap-3"
+      className="border border-gray-400 p-4 rounded-lg flex flex-col gap-3 mb-10"
     >
       <h3 className="text-center font-bold">{data.name}</h3>
       <div className="flex items-center gap-2">
