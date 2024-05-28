@@ -9,7 +9,7 @@ export default function ExamLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="w-full flex flex-col mb-10">
+    <div className="w-full flex flex-col">
       <Header />
       {children}
       <Chat />
