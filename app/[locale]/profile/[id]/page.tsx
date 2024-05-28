@@ -296,7 +296,7 @@ const Profile = ({ params }: { params: any }) => {
     });
     if (request.type === "ADD") {
       toast("Bạn đã gửi yêu cầu kết bạn đến " + request.sender);
-      setIsRequest(true)
+      setIsRequest(true);
     } else if (request.type === "DENY") {
       toast("Bạn đã từ chối yêu cầu kết bạn từ " + request.sender);
     } else if (request.type === "ACCEPT") {
@@ -431,22 +431,19 @@ const Profile = ({ params }: { params: any }) => {
             )}
             {params.id !== current_user._id && isWaiting && (
               <div className="space-y-2 mt-4 flex flex-col p-2">
-                <Button
-                  variant="secondary"
-                >
-                 Chờ bạn phản hồi
-                </Button>
+                <Button variant="secondary">Chờ bạn phản hồi</Button>
               </div>
             )}
-            {avatarPreview !== user?.avatar && params.id === user._id && (
-              <Button
-                onClick={handleChangeAvatar}
-                className="flex gap-2 items-center"
-              >
-                <FaSave /> Lưu
-              </Button>
-            )}
-            {isFriend && params.id !== user._id && (
+            {avatarPreview !== current_user?.avatar &&
+              params.id === current_user._id && (
+                <Button
+                  onClick={handleChangeAvatar}
+                  className="flex gap-2 items-center"
+                >
+                  <FaSave /> Lưu
+                </Button>
+              )}
+            {isFriend && params.id !== current_user._id && (
               <Button
                 onClick={() => setOpenConfirm(true)}
                 variant={"secondary"}
