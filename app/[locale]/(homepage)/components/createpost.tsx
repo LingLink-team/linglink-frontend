@@ -1,6 +1,6 @@
 "use client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MdDelete} from "react-icons/md";
+import { MdDelete } from "react-icons/md";
 import { FaRegImages } from "react-icons/fa6";
 import { BsPatchQuestionFill } from "react-icons/bs";
 import {
@@ -49,6 +49,7 @@ import { useAppSelector } from "@/app/redux/store";
 import { uploadFile } from "@/utils";
 import { motion } from "framer-motion";
 import { EmojiPicker } from "@/components/chat/emoji-picker";
+import { FaEdit } from "react-icons/fa";
 
 export default function CreatePost({ add }: { add: any }) {
   const user = useAppSelector((state) => state.auth.userinfor);
@@ -452,21 +453,29 @@ export default function CreatePost({ add }: { add: any }) {
                 </div>
                 <div>
                   {previewquestion !== null && (
-                    <div>
-                      <div>
-                        <div className="px-6 text-lg font-semibold mb-4">
-                          Câu hỏi: {previewquestion.content}
-                        </div>
-                        <div className="flex">
-                          <DialogTrigger asChild>
-                            <Button className="ml-6 mb-4">Sửa câu hỏi</Button>
-                          </DialogTrigger>
-                          <Button
-                            className="ml-6 mb-4"
-                            onClick={deletequestion}
-                          >
-                            Xóa câu hỏi
-                          </Button>
+                    <div className="mb-4">
+                      <div className="">
+                        <div className="flex justify-between items-center">
+                          <div className="font-semibold">
+                            Câu hỏi: {previewquestion.content}
+                          </div>
+                          <div className="flex ml-6">
+                            <DialogTrigger asChild>
+                              <Button
+                                className="mb-4 bg-yellow-400 hover:bg-yellow-300"
+                                size="sm"
+                              >
+                                <FaEdit />
+                              </Button>
+                            </DialogTrigger>
+                            <Button
+                              className="ml-2 mb-4 bg-red-400 hover:bg-red-300"
+                              size="sm"
+                              onClick={deletequestion}
+                            >
+                              <MdDelete />
+                            </Button>
+                          </div>
                         </div>
                         <div className="px-6 grid grid-cols-2 gap-3">
                           {previewquestion.answers.map(
