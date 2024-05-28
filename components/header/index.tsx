@@ -61,12 +61,18 @@ import { useQuery } from "@tanstack/react-query";
 import { Icons } from "../icons/icons";
 import { format } from "date-fns";
 
-function Notification({ notification }: any) {
+function Notification({ notification, setNotis, notis }: any) {
   const [isViewed, setIsViewed] = useState<boolean>(notification?.isViewed);
   const handleView = async () => {
     if (!notification.isViewed) {
       await NotificationService.view([notification._id]);
       setIsViewed(true);
+      const newNotis = notis.map((item: any) => {
+        const newItem = item;
+        newItem.isViewed = true;
+        return newItem;
+      });
+      setNotis(newNotis);
     }
   };
   return (
@@ -122,7 +128,7 @@ export default function Header() {
   const changeLang = (lang: string) => {
     router.replace(`/${lang}`, { scroll: false });
   };
-  const { socket } = useSocketStore();
+  const { socket, setSocket } = useSocketStore();
   const handleLogout = () => {
     // Xóa cookie khi người dùng đăng xuất
     try {
@@ -333,6 +339,21 @@ export default function Header() {
     [notifications]
   );
 
+  const handleNotifications = () => {
+    if (socket) {
+      socket.on("notification", (noti: any) => {
+        console.log(noti);
+        const newNoti = { ...noti, createdAt: new Date() };
+        toast(noti.sender.name + noti.title);
+        setNotifications((prev) => [newNoti, ...prev]);
+      });
+    }
+  };
+
+  useEffect(() => {
+    handleNotifications();
+  }, [socket]);
+
   return (
     <div
       className={`h-full rounded-md w-full z-10 shadow-md bg-background sticky top-0 max-h-[56px]`}
@@ -498,9 +519,7 @@ export default function Header() {
                 <div className="relative flex items-center h-full">
                   <IoNotifications className="text-2xl text-slate-500 hover:text-primary transition duration-300 cursor-pointer" />
                   {notifications?.length > 0 &&
-                    notifications.find(
-                      (item: any) => !item?.isViewed
-                    ) && (
+                    notifications.find((item: any) => !item?.isViewed) && (
                       <span className="w-[10px] absolute right-0 top-[5px] h-[10px] rounded-full bg-red-500" />
                     )}
                 </div>
@@ -532,7 +551,11 @@ export default function Header() {
                         key={notification._id}
                         className="w-full flex justify-center"
                       >
-                        <Notification notification={notification} />
+                        <Notification
+                          notification={notification}
+                          notis={notifications}
+                          setNotis={setNotifications}
+                        />
                       </li>
                     );
                 })}
