@@ -81,4 +81,14 @@ export class FlashcardService {
     );
     return response;
   }
+
+  static async removeFlashcardList(
+    flashcardListId: string
+  ): Promise<AxiosResponse<any>> {
+    const axiosInstance = createAxiosInstance();
+    const response: AxiosResponse<any> = await axiosInstance.delete(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/flashcard-list/${flashcardListId}`
+    );
+    return response;
+  }
 }
