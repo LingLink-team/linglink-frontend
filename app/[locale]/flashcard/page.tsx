@@ -26,6 +26,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "react-toastify";
 import Link from "next/link";
 import { renderSkeletons } from "@/app/utils/common";
+import { MdDelete } from "react-icons/md";
 
 const Banner: React.FC = () => {
   return (
@@ -52,6 +53,12 @@ const Banner: React.FC = () => {
 };
 
 const FlashcardListThumbnail = ({ data, key }: { data: any; key: number }) => {
+  const queryClient = useQueryClient();
+  const handleRemove = async () => {
+    await FlashcardService.removeFlashcardList(data._id);
+    toast.success("Xóa bộ flashcard thành công");
+    queryClient.invalidateQueries({ queryKey: ["flashcardlists"] });
+  };
   return (
     <div
       key={key}
@@ -71,6 +78,9 @@ const FlashcardListThumbnail = ({ data, key }: { data: any; key: number }) => {
         từ đã nhớ
       </div>
       <div className="mt-4 w-full">
+        <button className="mb-4" onClick={() => handleRemove()}>
+          <MdDelete />
+        </button>
         <Link href={`/flashcard/${data._id}`}>
           <Button variant="outline" className="w-full">
             Học
