@@ -93,8 +93,14 @@ const Home: React.FC = () => {
           });
         } else {
           setPosts((prevData) => {
-            const updatedPosts = [...prevData, ...newData.data];
-            return updatedPosts;
+            if (
+              prevData[prevData.length - 1]?._id ===
+              newData.data[newData.data.length - 1]?._id
+            )
+              return [...newData.data];
+            return [...prevData, ...newData.data];
+            // const updatedPosts = [...prevData, ...newData.data];
+            // return updatedPosts;
           });
           if (newData.data.length === 0) {
             setIsEnd(true);

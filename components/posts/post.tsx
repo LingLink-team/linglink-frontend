@@ -286,6 +286,7 @@ export const Post = ({ data, deletepost }: { data: any; deletepost: any }) => {
       setNumComments(numcomments + 1);
       setComment("");
       setIsLoading(false);
+      refetch();
     } catch (error: any) {
       setIsLoading(false);
     }
