@@ -39,6 +39,7 @@ export function Chat({ selectedUser, isMobile, chatRoomId }: ChatProps) {
     getMessages();
 
     sk?.on("getmessage", (newMessage: any) => {
+      console.log("RUN")
       if (newMessage.chatRoomId == chatRoomId)
         setMessages((prevMessages) => [...prevMessages, newMessage]);
     });

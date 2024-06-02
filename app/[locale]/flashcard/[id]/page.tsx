@@ -23,6 +23,7 @@ import {
 import { toast } from "react-toastify";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { truncate } from "lodash";
 
 const Banner = ({ name }: { name: string }) => {
   return (
@@ -61,7 +62,9 @@ const FlashcardThumbnail = ({
     );
     toast.success("Xóa flashcard thành công");
     queryClient.invalidateQueries({ queryKey: ["flashcardDetail"] });
+    setIsConfirm(false);
   };
+  const [isConfirm, setIsConfirm] = useState<boolean>(false);
   return (
     <div
       key={key}
@@ -74,19 +77,42 @@ const FlashcardThumbnail = ({
         </button>
       </h3>
       <div className="mt-4 w-full">Định nghĩa:</div>
-      <div>{data.answer}</div>
+      <div>{truncate(data.answer)}</div>
       <div className="w-full justify-center flex">
-        {data.status === "learned" && (
-          <div className="py-1 px-2 text-[12px] mt-6 rounded-full bg-primary text-primary-foreground w-fit">
-            Đã thuộc
+        {data.status === "learned" ? (
+          <div className="py-1 px-2 text-[12px] mt-6 rounded-full bg-green-200 text-green-500 w-fit font-bold">
+            Đã học
+          </div>
+        ) : (
+          <div className="py-1 px-2  mt-6 rounded-full bg-red-200 w-fit text-[12px] font-bold text-red-500">
+            Chưa học
           </div>
         )}
       </div>
       <div className="mt-2">
-        <button onClick={() => handleRemove()}>
+        <Button
+          size={"sm"}
+          variant={"outline"}
+          onClick={() => setIsConfirm(true)}
+        >
           <MdDelete />
-        </button>
+        </Button>
       </div>
+      <Dialog open={isConfirm} onOpenChange={setIsConfirm}>
+        <DialogContent>
+          Bạn có chắc chắn muốn xóa ?
+          <DialogFooter className="flex justify-end gap-2">
+            <Button
+              onClick={() => setIsConfirm(false)}
+              className=""
+              variant="secondary"
+            >
+              Hủy
+            </Button>
+            <Button onClick={() => handleRemove()}>Xác nhận</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
@@ -114,11 +140,11 @@ const FlashcardShowAll = ({ data }: { data: any }) => {
             <div>Định nghĩa: {item.answer}</div>
             {item?.status && item.status === "learned" ? (
               <div className="p-2 rounded-full bg-green-200 w-fit text-[10px] font-bold text-green-500">
-                Đã thuộc
+                Đã học
               </div>
             ) : (
               <div className="p-2 rounded-full bg-red-200 w-fit text-[10px] font-bold text-red-500">
-                Chưa thuộc
+                Chưa học
               </div>
             )}
             {item?.status && item.status === "learned" && (

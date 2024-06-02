@@ -55,11 +55,11 @@ export const FlashcardShowAll = ({ data }: { data: any }) => {
             <div>Định nghĩa: {item.answer}</div>
             {item?.status && item.status === "learned" ? (
               <div className="p-2 rounded-full bg-green-200 w-fit text-[10px] font-bold text-green-500">
-                Đã thuộc
+                Đã học
               </div>
             ) : (
               <div className="p-2 rounded-full bg-red-200 w-fit text-[10px] font-bold text-red-500">
-                Chưa thuộc
+                Chưa học
               </div>
             )}
             {item?.status && item.status === "learned" && (

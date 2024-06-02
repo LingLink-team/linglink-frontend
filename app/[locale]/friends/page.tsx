@@ -4,7 +4,7 @@ import { User } from "@/app/constants/data";
 import { useAppSelector } from "@/app/redux/store";
 import { ChatService, UserService } from "@/app/services";
 import { useSocketStore } from "@/app/store/socketStore";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -61,7 +61,7 @@ const Friends: React.FC = () => {
       receiver: request.receiver,
     });
     if (request.type === "ADD") {
-      toast("Bạn đã gửi yêu cầu kết bạn đến " + request.sender);
+      toast.success("Bạn đã gửi yêu cầu kết bạn đến " + request.sender);
       if (searchResult.length > 0) {
         const newResult = searchResult.filter(
           (item: User) => item._id.toString() !== request.receiver
@@ -69,9 +69,9 @@ const Friends: React.FC = () => {
         setSearchResult(newResult);
       }
     } else if (request.type === "DENY") {
-      toast("Bạn đã từ chối yêu cầu kết bạn từ " + request.sender);
+      toast.error("Bạn đã từ chối yêu cầu kết bạn từ " + request.sender);
     } else if (request.type === "ACCEPT") {
-      toast("Bạn đã đồng ý yêu cầu kết bạn từ " + request.sender);
+      toast.success("Bạn đã đồng ý yêu cầu kết bạn từ " + request.sender);
     }
     setTimeout(refetchRequests, 1000);
   };
@@ -97,152 +97,124 @@ const Friends: React.FC = () => {
     toast.success("Hủy yêu cầu kết bạn thành công");
     refetchMyRequests();
   };
+
   return (
-    <div className="container">
-      <div className="bg-background mt-8 rounded-md px-2 py-4 shadow-lg">
+    <div className="container mx-auto mt-8">
+      <div className="flex justify-center gap-4 mb-8">
         <Button
           onClick={() => handleClick("all")}
           variant="ghost"
-          className="!py-2 h-full"
+          className={`flex items-center gap-2 p-2 ${
+            clickedMenu === "all" && active_menu
+          }`}
         >
-          <div
-            className={`${
-              clickedMenu === "all" && active_menu
-            } flex items-center gap-2 h-full transition-all duration-300 pb-2`}
-          >
-            <div className="rounded-full w-10 h-10 bg-slate-400 flex items-center justify-center p-2">
-              <IoPeopleSharp className="text-black" />
-            </div>
-            <div className="font-medium text-lg">Tất cả bạn bè</div>
-          </div>
+          <IoPeopleSharp className="text-xl" />
+          <span className="text-lg font-semibold">Tất cả bạn bè</span>
         </Button>
         <Button
           onClick={() => handleClick("request")}
           variant="ghost"
-          className="!py-2 h-full"
+          className={`flex items-center gap-2 p-2 ${
+            clickedMenu === "request" && active_menu
+          }`}
         >
-          <div
-            className={`${
-              clickedMenu === "request" && active_menu
-            } flex items-center gap-2 h-full transition-all duration-300 pb-2`}
-          >
-            <div className="rounded-full w-10 h-10 bg-slate-400 flex items-center justify-center p-2">
-              <IoPersonAdd className="text-black" />
-            </div>
-            <div className="font-medium text-lg">Lời mời kết bạn</div>
-          </div>
+          <IoPersonAdd className="text-xl" />
+          <span className="text-lg font-semibold">Lời mời kết bạn</span>
         </Button>
         <Button
           onClick={() => handleClick("search")}
           variant="ghost"
-          className="!py-2 h-full"
+          className={`flex items-center gap-2 p-2 ${
+            clickedMenu === "search" && active_menu
+          }`}
         >
-          <div
-            className={`${
-              clickedMenu === "search" && active_menu
-            } flex items-center gap-2 h-full transition-all duration-300 pb-2`}
-          >
-            <div className="rounded-full w-10 h-10 bg-slate-400 flex items-center justify-center p-2">
-              <IoPersonAdd className="text-black" />
-            </div>
-            <div className="font-medium text-lg">Tìm bạn</div>
-          </div>
+          <RiSearchLine className="text-xl" />
+          <span className="text-lg font-semibold">Tìm bạn</span>
         </Button>
       </div>
-      <div>
+      <div className="bg-white shadow-md p-6 rounded-md">
         {clickedMenu === "all" && (
-          <div className="grid grid-cols-6 gap-4 mt-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {friends &&
               friends.map((friend: any) => (
-                <div
+                <Link
                   key={friend._id}
-                  className="bg-white rounded-md shadow-md w-full pt-1 px-2"
+                  href={`/profile/${friend._id}`}
+                  className="bg-gray-100 hover:bg-gray-200 transition rounded-md p-4 flex flex-col items-center"
                 >
-                  <Link
-                    className="flex gap-2 items-center"
-                    href={`/profile/${friend._id}`}
-                  >
-                    <Avatar>
-                      <AvatarImage src={friend.avatar} alt="avatar" />
-                      <AvatarFallback> {friend.name}</AvatarFallback>
-                    </Avatar>
-                    <div className="font-medium px-2 pt-2 pb-4">
-                      {friend.name}
-                    </div>
-                  </Link>
-                  {/* <Button>Đồng ý</Button> */}
-                </div>
+                  <Image
+                    className="w-24 h-24 rounded-full mb-4 object-cover"
+                    height={96}
+                    width={96}
+                    src={friend.avatar}
+                    alt="avatar"
+                  />
+                  <span className="font-medium text-center">{friend.name}</span>
+                </Link>
               ))}
           </div>
         )}
         {clickedMenu === "request" && (
-          <div className="mt-8 mb-4">
-            <div>
-              <Dialog>
-                <DialogTrigger className="font-medium bg-white p-2 w-fit shadow-lg rounded-md">
-                  Xem lời mời đã gửi
-                </DialogTrigger>
-                <DialogContent className="max-h-[60vh] overflow-y-auto">
-                  <div className="font-semibold mb-2">Lời mời đã gửi</div>
-                  {MyFriendRequests?.map((request: any) => (
-                    <div
-                      key={request._id}
-                      className="bg-background p-2 w-full rounded-lg space-y-2 flex justify-between hover:bg-secondary transition-all duration-300"
+          <div>
+            <Dialog>
+              <DialogTrigger>
+                <Button className="font-medium">Xem lời mời đã gửi</Button>
+              </DialogTrigger>
+              <DialogContent className="max-h-[60vh] overflow-y-auto">
+                <div className="font-semibold mb-2">Lời mời đã gửi</div>
+                {MyFriendRequests?.map((request: any) => (
+                  <div
+                    key={request._id}
+                    className="bg-gray-100 p-4 rounded-md flex justify-between items-center mb-2"
+                  >
+                    <Link
+                      href={`/profile/${request.receiver._id}`}
+                      className="flex items-center gap-4"
                     >
-                      <div className="flex items-center gap-y-4">
-                        <Link
-                          className="flex items-center gap-2"
-                          href={`/profile/${request.receiver._id}`}
-                        >
-                          <Image
-                            className="w-12 h-12 mb-2 object-contain rounded-full"
-                            height={0}
-                            width={0}
-                            src={request.receiver.avatar}
-                            alt="avatar"
-                          />
-                          <div className="font-medium px-2 pt-2 pb-4">
-                            {request.receiver.name}
-                          </div>
-                        </Link>
-                      </div>
-                      <div className="space-y-2 mt-4 flex flex-col">
-                        <Button
-                          variant="secondary"
-                          onClick={() => deleteRequest(request._id)}
-                        >
-                          Hủy
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </DialogContent>
-              </Dialog>
-            </div>
-            <div className="font-semibold text-lg mb-4 mt-6 pl-1">
+                      <Image
+                        className="w-12 h-12 rounded-full"
+                        height={48}
+                        width={48}
+                        src={request.receiver.avatar}
+                        alt="avatar"
+                      />
+                      <span className="font-medium">
+                        {request.receiver.name}
+                      </span>
+                    </Link>
+                    <Button
+                      variant="destructive"
+                      onClick={() => deleteRequest(request._id)}
+                    >
+                      Hủy
+                    </Button>
+                  </div>
+                ))}
+              </DialogContent>
+            </Dialog>
+            <div className="font-semibold text-lg mb-4 mt-6">
               Lời mời đã nhận
             </div>
-            <div className="grid grid-cols-6 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
               {friendRequests?.map((request: any) => (
                 <div
                   key={request._id}
-                  className="bg-background w-full rounded-lg space-y-2 shadow-lg"
+                  className="bg-gray-100 hover:bg-gray-200 transition p-4 rounded-md flex flex-col items-center"
                 >
-                  <div className="flex flex-col gap-y-4">
-                    <Link href={`/profile/${request.sender._id}`}>
-                      <Image
-                        className="w-full mb-2 object-contain rounded-t-md"
-                        height={0}
-                        width={0}
-                        src={request.sender.avatar}
-                        alt="avatar"
-                      />
-                      <div className="font-medium px-2 pt-2 pb-4">
-                        {request.sender.name}
-                      </div>
-                    </Link>
-                  </div>
-                  <div className="space-y-2 mt-4 flex flex-col p-2">
+                  <Link
+                    href={`/profile/${request.sender._id}`}
+                    className="flex flex-col items-center"
+                  >
+                    <Image
+                      className="w-24 h-24 rounded-full mb-4 object-cover"
+                      height={96}
+                      width={96}
+                      src={request.sender.avatar}
+                      alt="avatar"
+                    />
+                    <span className="font-medium">{request.sender.name}</span>
+                  </Link>
+                  <div className="flex gap-2 mt-4">
                     <Button
                       onClick={() =>
                         handleRequestFriend({
@@ -256,7 +228,7 @@ const Friends: React.FC = () => {
                       Đồng ý
                     </Button>
                     <Button
-                      variant="secondary"
+                      variant="destructive"
                       onClick={() =>
                         handleRequestFriend({
                           type: "DENY",
@@ -276,75 +248,71 @@ const Friends: React.FC = () => {
         )}
         {clickedMenu === "search" && (
           <div>
-            <div className="flex gap-4 items-center mt-2 w-fit p-2 bg-white shadow-lg rounded-md">
+            <div className="flex gap-4 items-center bg-gray-50 mb-4">
               <Input
-                className="max-w-[400px]"
+                className="flex-1"
                 type="text"
                 value={search}
                 onChange={(e: any) => setSearch(e.target.value)}
                 placeholder="Nhập tên để tìm kiếm"
               />
-              <button
-                className="bg-primary rounded-md p-[10px] text-white"
-                onClick={handleSearch}
-              >
-                <RiSearchLine className="h-4 w-4" />
-              </button>
+              <Button className="bg-primary text-white" onClick={handleSearch}>
+                <RiSearchLine className="h-5 w-5" />
+              </Button>
             </div>
+            <hr className="mb-4" />
             {searchResult.length > 0 && (
-              <div className="mt-4 mb-6 font-semibold">Kết quả tìm kiếm:</div>
-            )}
-            <div className="grid grid-cols-5 mt-2 gap-4">
-              {searchResult.length > 0 &&
-                searchResult?.map((item: User) => (
-                  <div
-                    className="bg-background p-2 rounded-lg flex gap-x-4 shadow-lg"
-                    key={item._id}
-                  >
-                    <Link href={`/profile/${item._id}`}>
-                      <Avatar className="flex justify-center items-center">
-                        <AvatarImage
-                          src={item.avatar}
-                          alt={item.avatar}
-                          width={8}
-                          height={8}
-                          className="h-fit w-fit max-w-12 max-h-12 rounded-full"
-                        />
-                      </Avatar>
-                    </Link>
-                    <div className="flex flex-col">
-                      <span>{item.name}</span>
+              <div>
+                <div className="font-semibold mb-4">Kết quả tìm kiếm:</div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                  {searchResult.map((item: User) => (
+                    <div
+                      key={item._id}
+                      className="bg-gray-100 hover:bg-gray-200 transition p-4 rounded-md flex flex-col items-center"
+                    >
+                      <Link href={`/profile/${item._id}`}>
+                        <Avatar className="w-24 h-24 rounded-full mb-4">
+                          <AvatarImage
+                            src={item.avatar}
+                            alt={item.avatar}
+                            width={96}
+                            height={96}
+                          />
+                        </Avatar>
+                      </Link>
+                      <span className="font-medium">{item.name}</span>
                       {friends?.some(
                         (friend: any) => friend._id === item._id
                       ) ? (
-                        <div> Đã là bạn bè </div>
+                        <span className="text-sm text-gray-500 mt-2">
+                          Đã là bạn bè
+                        </span>
+                      ) : !friendRequests.some(
+                          (request: any) => request.sender._id === item._id
+                        ) ? (
+                        <Button
+                          className="mt-2"
+                          onClick={() =>
+                            handleRequestFriend({
+                              type: "ADD",
+                              receiver: item._id.toString(),
+                              request: "",
+                              sender: item.name,
+                            })
+                          }
+                        >
+                          Gửi kết bạn
+                        </Button>
                       ) : (
-                        <>
-                          {!friendRequests.some(
-                            (friend: any) => friend.sender._id === item._id
-                          ) ? (
-                            <button
-                              className="text-left text-sm mt-2 text-primary"
-                              onClick={() =>
-                                handleRequestFriend({
-                                  type: "ADD",
-                                  receiver: item._id.toString(),
-                                  request: "",
-                                  sender: item.name,
-                                })
-                              }
-                            >
-                              Gửi kết bạn
-                            </button>
-                          ) : (
-                            <div> Chờ bạn phản hồi</div>
-                          )}
-                        </>
+                        <span className="text-sm text-gray-500 mt-2">
+                          Chờ bạn phản hồi
+                        </span>
                       )}
                     </div>
-                  </div>
-                ))}
-            </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

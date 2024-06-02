@@ -53,8 +53,8 @@ const Filter: React.FC = () => {
 
 const Home: React.FC = () => {
   const [posts, setPosts] = useState<any[]>([]);
-  const [lastFetchTime, setLastFetchTime] = useState<Date>();
-  const [lastPostTime, setLastPostTime] = useState<Date>();
+  const [lastFetchTime, setLastFetchTime] = useState<Date | null>();
+  const [lastPostTime, setLastPostTime] = useState<Date | null>();
   const [selectedTopic, setSelectedTopic] = useState("all");
   const [isEnd, setIsEnd] = useState<boolean>(false);
 
@@ -86,26 +86,17 @@ const Home: React.FC = () => {
             },
           }
         );
-        if (posts.length > 20 && newData.data.length > 0) {
-          setPosts(() => {
-            const updatedPosts = [...newData.data];
-            return updatedPosts;
-          });
+        if (newData.data.length === 0) {
+          toast.warning("Đã đến bài viết cuối cùng")
         } else {
           setPosts((prevData) => {
             if (
               prevData[prevData.length - 1]?._id ===
               newData.data[newData.data.length - 1]?._id
             )
-              return [...newData.data];
-            return [...prevData, ...newData.data];
-            // const updatedPosts = [...prevData, ...newData.data];
-            // return updatedPosts;
+              return [...prevData, ...newData.data];
+            return [...newData.data];
           });
-          if (newData.data.length === 0) {
-            setIsEnd(true);
-            toast.warning("Đã đến post cuối cùng");
-          }
         }
         setLastFetchTime(new Date());
         return newData.data;

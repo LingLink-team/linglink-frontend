@@ -45,7 +45,6 @@ const Banner: React.FC = () => {
         </h1>
         <div className="mt-4 flex gap-4">
           <Button>Bộ từ vựng</Button>
-          <Button variant="secondary">Khám phá</Button>
         </div>
       </div>
     </div>
@@ -58,7 +57,9 @@ const FlashcardListThumbnail = ({ data, key }: { data: any; key: number }) => {
     await FlashcardService.removeFlashcardList(data._id);
     toast.success("Xóa bộ flashcard thành công");
     queryClient.invalidateQueries({ queryKey: ["flashcardlists"] });
+    setIsConfirm(false);
   };
+  const [isConfirm, setIsConfirm] = useState<boolean>(false);
   return (
     <div
       key={key}
@@ -78,15 +79,35 @@ const FlashcardListThumbnail = ({ data, key }: { data: any; key: number }) => {
         từ đã nhớ
       </div>
       <div className="mt-4 w-full">
-        <button className="mb-4" onClick={() => handleRemove()}>
-          <MdDelete />
-        </button>
+        <Button
+          size={"sm"}
+          variant={"outline"}
+          className="mb-4"
+          onClick={() => setIsConfirm(true)}
+        >
+          <MdDelete className="fill-red-600" />
+        </Button>
         <Link href={`/flashcard/${data._id}`}>
           <Button variant="outline" className="w-full">
-            Học
+            Xem chi tiết
           </Button>
         </Link>
       </div>
+      <Dialog open={isConfirm} onOpenChange={setIsConfirm}>
+        <DialogContent>
+          Bạn có chắc chắn muốn xóa ?
+          <DialogFooter className="flex justify-end gap-2">
+            <Button
+              onClick={() => setIsConfirm(false)}
+              className=""
+              variant="secondary"
+            >
+              Hủy
+            </Button>
+            <Button onClick={() => handleRemove()}>Xác nhận</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
