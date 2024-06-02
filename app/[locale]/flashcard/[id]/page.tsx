@@ -77,25 +77,23 @@ const FlashcardThumbnail = ({
         </button>
       </h3>
       <div className="mt-4 w-full">Định nghĩa:</div>
-      <div>{truncate(data.answer)}</div>
-      <div className="w-full justify-center flex">
-        {data.status === "learned" ? (
-          <div className="py-1 px-2 text-[12px] mt-6 rounded-full bg-green-200 text-green-500 w-fit font-bold">
-            Đã học
-          </div>
-        ) : (
-          <div className="py-1 px-2  mt-6 rounded-full bg-red-200 w-fit text-[12px] font-bold text-red-500">
-            Chưa học
-          </div>
-        )}
-      </div>
-      <div className="mt-2">
+      <div className="whitespace-nowrap overflow-hidden overflow-ellipsis">{truncate(data.answer)}</div>
+      <div className="flex justify-center items-center text-center align-bottom gap-3">
+          {data.status === "learned" ? (
+            <div className="py-1 px-2 text-sm rounded-full bg-green-200 text-green-500 w-full font-bold">
+              Đã học
+            </div>
+          ) : (
+            <div className="py-1 px-2 rounded-full bg-red-200 w-full text-sm font-bold text-red-500">
+              Chưa học
+            </div>
+          )}
         <Button
           size={"sm"}
           variant={"outline"}
           onClick={() => setIsConfirm(true)}
         >
-          <MdDelete />
+          <MdDelete className="fill-red-600"/>
         </Button>
       </div>
       <Dialog open={isConfirm} onOpenChange={setIsConfirm}>

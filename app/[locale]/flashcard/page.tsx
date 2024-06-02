@@ -78,20 +78,20 @@ const FlashcardListThumbnail = ({ data, key }: { data: any; key: number }) => {
         }{" "}
         từ đã nhớ
       </div>
-      <div className="mt-4 w-full">
-        <Button
-          size={"sm"}
-          variant={"outline"}
-          className="mb-4"
-          onClick={() => setIsConfirm(true)}
-        >
-          <MdDelete className="fill-red-600" />
-        </Button>
+      <div className="mt-4 w-full flex gap-2 justify-center">
         <Link href={`/flashcard/${data._id}`}>
           <Button variant="outline" className="w-full">
             Xem chi tiết
           </Button>
         </Link>
+        <Button
+          size={"sm"}
+          variant={"outline"}
+          className="h-full"
+          onClick={() => setIsConfirm(true)}
+        >
+          <MdDelete className="fill-red-600" />
+        </Button>
       </div>
       <Dialog open={isConfirm} onOpenChange={setIsConfirm}>
         <DialogContent>
