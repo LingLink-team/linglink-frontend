@@ -342,7 +342,6 @@ export default function Header() {
   const handleNotifications = () => {
     if (socket) {
       socket.on("notification", (noti: any) => {
-        console.log(noti);
         const newNoti = { ...noti, createdAt: new Date() };
         toast(noti.sender.name + noti.title);
         setNotifications((prev) => [newNoti, ...prev]);
