@@ -28,26 +28,34 @@ export default function Chat() {
     // Xử lý chọn user để chat ở đây
     setSelectedRoom(room);
     setOpenFriend(false);
+    const newUnread = unreadMessages.filter(
+      (item: any) => item.chatRoomId !== room.chatRoomId
+    );
+    setUnreadMessages(newUnread);
   };
 
   const [search, setSearch] = useState("");
   const [searchResult, setSearchResult] = useState<any>([]);
 
   const handleSearch = async () => {
-    const result = rooms.filter((room: any) => room.friends?.name.includes(search))
-    setSearchResult(result)
+    const result = rooms.filter((room: any) =>
+      room.friends?.name.includes(search)
+    );
+    setSearchResult(result);
   };
 
   const user = useAppSelector((state) => state.auth.userinfor);
   const { socket: sk, setSocket } = useSocketStore();
- 
+
   // Lấy danh sách room chat
   async function fetchChatRoom() {
     const roomchats = await ChatService.getChatRoom();
     setRooms(roomchats);
-    setSearchResult(roomchats)
+    setSearchResult(roomchats);
     return roomchats;
   }
+
+  const [unreadMessages, setUnreadMessages] = useState<any>([]);
 
   async function setChatRoom() {
     const roomchats: any = await fetchChatRoom();
@@ -72,6 +80,23 @@ export default function Chat() {
 
   useEffect(() => {
     setChatRoom();
+    sk?.on("getmessage", (newMessage: any) => {
+      let find = false;
+      const newUnreadMessages = unreadMessages.map((item: any) => {
+        if (newMessage.chatRoomId === item.chatRoomID) {
+          find = true;
+          return newMessage;
+        } else return item;
+      });
+      if (newMessage?.from?._id !== user?._id) {
+        if (!find)
+          setUnreadMessages((prevMessages: any) => [
+            ...prevMessages,
+            newMessage,
+          ]);
+        else setUnreadMessages(newUnreadMessages);
+      }
+    });
   }, [sk]);
 
   useEffect(() => {
@@ -87,6 +112,7 @@ export default function Chat() {
     <Popover open={chatOpen} onOpenChange={setChatOpen}>
       <PopoverTrigger asChild>
         <Button
+          onClick={() => setOpenFriend(true)}
           className={`fixed bottom-6 right-4 rounded-full w-12 h-12 shadow-lg border-none p-3 ${
             chatOpen ? "invisible" : ""
           }`}
@@ -97,6 +123,9 @@ export default function Chat() {
             src={chat}
             alt="chat"
           />
+          {unreadMessages.length > 0 && (
+            <span className="w-[10px] absolute right-0 top-[5px] h-[10px] rounded-full bg-red-500" />
+          )}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="scroll-auto max-h-80vh max-w-[400px] w-[400px] fixed bottom-2 right-2">
@@ -126,7 +155,11 @@ export default function Chat() {
                   <div
                     onClick={() => handleChooseFriend(room)}
                     key={index}
-                    className="bg-gray-100 p-2 w-full rounded-lg cursor-pointer flex gap-x-4"
+                    className={`bg-gray-100 p-2 w-full rounded-lg cursor-pointer flex gap-x-4 relative ${
+                      unreadMessages.find(
+                        (item: any) => item.chatRoomId === room.chatRoomId
+                      ) && "font-bold"
+                    }`}
                   >
                     <Avatar>
                       <AvatarImage
@@ -138,6 +171,11 @@ export default function Chat() {
                     <div className="flex flex-col w-full">
                       <span>{room.friends.name}</span>
                     </div>
+                    {unreadMessages.find(
+                      (item: any) => item.chatRoomId === room.chatRoomId
+                    ) && (
+                      <span className="w-[10px] absolute right-1 top-[5px] h-[10px] rounded-full bg-blue-400" />
+                    )}
                   </div>
                 ))}
               </nav>

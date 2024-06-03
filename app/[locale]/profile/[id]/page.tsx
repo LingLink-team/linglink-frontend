@@ -456,7 +456,12 @@ const Profile = ({ params }: { params: any }) => {
               <DialogContent>
                 Bạn có chắc chắn muốn hủy kết bạn ?
                 <DialogFooter className="flex gap-2 justify-end">
-                  <Button variant="secondary">Hủy</Button>
+                  <Button
+                    onClick={() => setOpenConfirm(false)}
+                    variant="secondary"
+                  >
+                    Hủy
+                  </Button>
                   <Button onClick={handleDeleteFriend}>Xác nhận</Button>
                 </DialogFooter>
               </DialogContent>

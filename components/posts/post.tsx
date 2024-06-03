@@ -60,6 +60,7 @@ import { Textarea } from "../ui/textarea";
 import Link from "next/link";
 import { ReactionsModal } from "../reactionsModal";
 import { useSocketStore } from "@/app/store/socketStore";
+import Question from "./Question";
 
 const Header = ({ data, deletepost }: { data: any; deletepost: any }) => {
   const user = useAppSelector((state) => state.auth.userinfor);
@@ -190,20 +191,15 @@ const Body = ({ content }: { content: any }) => {
         )}
         {content?.question && content?.question !== null && (
           <div>
-            <div className="px-6 text-lg font-semibold mb-4">
-              Câu hỏi: {content.question?.content}
-            </div>
-            {content.question?.audio_url && (
-              <div className="px-6 mb-4">
-                <AudioPlayer
-                  autoPlay={false}
-                  src={content.question.audio_url}
-                  className="w-full my-2"
-                />
-              </div>
-            )}
-            <div className="px-6 grid grid-cols-2 gap-3">
-              {content.question?.answers?.map((answer: any, idx: any) => {
+            <div className="px-6">
+              <Question
+                content={content.question.content}
+                answers={content.question.answers}
+                a_key={content.question.key}
+                audio_url={content.question.audio_url}
+                id={content.question._id}
+              />
+              {/* {content.question?.answers?.map((answer: any, idx: any) => {
                 return (
                   <div className="w-full" key={idx}>
                     <AlertDialog>
@@ -227,13 +223,12 @@ const Body = ({ content }: { content: any }) => {
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Đóng</AlertDialogCancel>
-                          {/* <AlertDialogAction>Continue</AlertDialogAction> */}
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
                   </div>
                 );
-              })}
+              })} */}
             </div>
           </div>
         )}
