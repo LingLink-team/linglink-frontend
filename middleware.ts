@@ -1,7 +1,6 @@
 import createMiddleware from "next-intl/middleware";
 // import { NextResponse } from 'next/server'
 import { NextRequest, NextResponse } from "next/server";
-import { connectSocket } from "./app/services/socketService";
 
 const intlMiddleware = createMiddleware({
   // A list of all locales that are supported

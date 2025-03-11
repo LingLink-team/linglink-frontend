@@ -1,5 +1,5 @@
 import { AxiosResponse } from "axios";
-import { io, Socket } from "socket.io-client";
+import { io } from "socket.io-client";
 import createAxiosInstance from "../utils/axiosInstance";
 
 export async function connectSocket() {

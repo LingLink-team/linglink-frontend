@@ -76,7 +76,7 @@ const Home: React.FC = () => {
           else if (lastTime > lastPostTime) lastTime = lastPostTime;
         }
         const newData = await axiosJWT.get(
-          `${process.env.NEXT_PUBLIC_BASE_URL_V2}/posts/page`,
+          `${process.env.NEXT_PUBLIC_BASE_URL}/posts/page`,
           {
             params: {
               lastPostTime: lastTime,
@@ -87,7 +87,7 @@ const Home: React.FC = () => {
           }
         );
         if (newData.data.length === 0) {
-          toast.warning("Đã đến bài viết cuối cùng")
+          toast.warning("Đã đến bài viết cuối cùng");
         } else {
           setPosts((prevData) => {
             if (
