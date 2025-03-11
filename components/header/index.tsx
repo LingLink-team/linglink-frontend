@@ -67,7 +67,7 @@ function Notification({ notification, setNotis, notis }: any) {
     if (!notification.isViewed) {
       await NotificationService.view([notification._id]);
       setIsViewed(true);
-      const newNotis = notis.map((item: any) => {
+      const newNotis = notis?.map((item: any) => {
         const newItem = item;
         newItem.isViewed = true;
         return newItem;

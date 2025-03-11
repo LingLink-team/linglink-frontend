@@ -60,6 +60,7 @@ const Friends: React.FC = () => {
       request: request.request,
       receiver: request.receiver,
     });
+
     if (request.type === "ADD") {
       toast.success("Bạn đã gửi yêu cầu kết bạn đến " + request.sender);
       if (searchResult.length > 0) {

@@ -50,10 +50,11 @@ export default function UserLoginForm({
         setCookie("refreshToken", response.data.refreshToken);
         dispatch(setToken(response.data));
         toast.success("Đăng nhập thành công");
-        let axiosJWT = createAxiosInstance();
+        let axiosJWT = createAxiosInstance() ;
         let userinfor = await axiosJWT.get("/user/me");
         dispatch(setInfor(userinfor.data));
         const newSocket = await connectSocket();
+        console.log(newSocket);
         setSocket(newSocket);
         router.push("/", { scroll: false });
         return response;
